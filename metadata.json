@@ -1,0 +1,5 @@
+{
+  "name": "GenGame: Agentic Game Studio",
+  "description": "A Generative Gameplay prototype where AI Agents (Director, Engineer, QA) collaborate to build micro-games based on news topics in real-time.",
+  "requestFramePermissions": []
+}
