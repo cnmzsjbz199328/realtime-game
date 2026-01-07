@@ -1,16 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import { AgentStatus, AgentLog } from '../types';
+import { AgentStatus, AgentLog } from '../core/domain/types';
 
 interface AgentVisualizerProps {
   status: AgentStatus;
   logs: AgentLog[];
 }
 
-const AgentCard: React.FC<{ 
-  role: string; 
-  isActive: boolean; 
-  icon: string; 
-  color: string 
+const AgentCard: React.FC<{
+  role: string;
+  isActive: boolean;
+  icon: string;
+  color: string
 }> = ({ role, isActive, icon, color }) => (
   <div className={`p-4 rounded-lg border transition-all duration-300 ${isActive ? `border-${color}-500 bg-${color}-500/10 shadow-[0_0_15px_rgba(var(--${color}-rgb),0.3)] scale-105` : 'border-zinc-800 bg-zinc-900/50 opacity-60'}`}>
     <div className="flex items-center gap-3 mb-2">
@@ -45,23 +45,23 @@ export const AgentVisualizer: React.FC<AgentVisualizerProps> = ({ status, logs }
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       {/* Agents Column */}
       <div className="flex flex-col gap-4">
-        <AgentCard 
-          role="The Director" 
-          icon="🎬" 
-          color="purple" 
-          isActive={status === AgentStatus.DIRECTOR_THINKING} 
+        <AgentCard
+          role="The Director"
+          icon="🎬"
+          color="purple"
+          isActive={status === AgentStatus.DIRECTOR_THINKING}
         />
-        <AgentCard 
-          role="The Engineer" 
-          icon="💻" 
-          color="blue" 
-          isActive={status === AgentStatus.ENGINEER_CODING} 
+        <AgentCard
+          role="The Engineer"
+          icon="💻"
+          color="blue"
+          isActive={status === AgentStatus.ENGINEER_CODING}
         />
-        <AgentCard 
-          role="Quality Assurance" 
-          icon="🛡️" 
-          color="green" 
-          isActive={status === AgentStatus.QA_TESTING} 
+        <AgentCard
+          role="Quality Assurance"
+          icon="🛡️"
+          color="green"
+          isActive={status === AgentStatus.QA_TESTING}
         />
       </div>
 
@@ -73,7 +73,7 @@ export const AgentVisualizer: React.FC<AgentVisualizerProps> = ({ status, logs }
           <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
           <span className="ml-2 text-zinc-500 text-xs">agent_workflow.log</span>
         </div>
-        
+
         <div ref={logContainerRef} className="mt-8 flex-1 overflow-y-auto space-y-2 pr-2">
           {logs.length === 0 && (
             <div className="text-zinc-600 italic">Waiting for input stream...</div>
@@ -81,25 +81,24 @@ export const AgentVisualizer: React.FC<AgentVisualizerProps> = ({ status, logs }
           {logs.map((log) => (
             <div key={log.id} className="flex gap-3 animate-fade-in">
               <span className="text-zinc-600 shrink-0">
-                [{new Date(log.timestamp).toLocaleTimeString([], {hour12: false, second: '2-digit'})}]
+                [{new Date(log.timestamp).toLocaleTimeString([], { hour12: false, second: '2-digit' })}]
               </span>
-              <span className={`font-bold shrink-0 w-24 ${
-                log.agent === 'DIRECTOR' ? 'text-purple-400' :
-                log.agent === 'ENGINEER' ? 'text-blue-400' : 'text-green-400'
-              }`}>
+              <span className={`font-bold shrink-0 w-24 ${log.agent === 'DIRECTOR' ? 'text-purple-400' :
+                  log.agent === 'ENGINEER' ? 'text-blue-400' : 'text-green-400'
+                }`}>
                 {log.agent}:
               </span>
               <span className="text-zinc-300 break-words">{log.message}</span>
             </div>
           ))}
           {status === AgentStatus.FAILED && (
-             <div className="text-red-500 font-bold mt-2">
-               CRITICAL ERROR: Workflow halted.
-             </div>
+            <div className="text-red-500 font-bold mt-2">
+              CRITICAL ERROR: Workflow halted.
+            </div>
           )}
         </div>
       </div>
-      
+
       <style>{`
         .animate-progress {
           animation: progress 2s infinite linear;

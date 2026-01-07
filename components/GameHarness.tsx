@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GameDefinition, InputState } from '../types';
+import { GameDefinition, InputState } from '../core/domain/types';
 
 interface GameHarnessProps {
   gameDef: GameDefinition;
@@ -10,7 +10,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | null>(null);
   const stateRef = useRef<any>({});
-  
+
   // Input handling
   const inputRef = useRef<InputState>({ x: 0, y: 0, isDown: false, keys: {} });
 
@@ -47,10 +47,10 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
   // Initialize and Run Game
   useEffect(() => {
     if (!canvasRef.current || !gameDef) return;
-    
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    
+
     if (!ctx) {
       setRuntimeError("Could not get 2D context");
       return;
@@ -70,7 +70,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
       setupFunc = new Function('ctx', 'canvas', 'state', gameDef.setupCode);
       // eslint-disable-next-line no-new-func
       updateFunc = new Function('ctx', 'canvas', 'state', 'input', gameDef.updateCode);
-      
+
       // Run Setup
       setupFunc(ctx, canvas, stateRef.current);
 
@@ -115,14 +115,14 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
           </div>
         </div>
       ) : null}
-      
-      <canvas 
+
+      <canvas
         ref={canvasRef}
         width={800}
         height={600}
         className="max-w-full max-h-full shadow-2xl cursor-crosshair bg-[#050505]"
       />
-      
+
       {/* UI Overlay for game instructions */}
       <div className="absolute top-4 left-4 pointer-events-none">
         <h2 className="text-2xl font-black text-white drop-shadow-md tracking-tighter uppercase italic bg-black/50 px-2">
@@ -133,9 +133,9 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
         </p>
       </div>
 
-       <div className="absolute bottom-4 right-4 text-xs text-zinc-600 font-mono">
-         HARNESS v1.0.4 :: RENDER_LOOP_ACTIVE
-       </div>
+      <div className="absolute bottom-4 right-4 text-xs text-zinc-600 font-mono">
+        HARNESS v1.0.4 :: RENDER_LOOP_ACTIVE
+      </div>
     </div>
   );
 };
