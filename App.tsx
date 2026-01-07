@@ -76,16 +76,8 @@ function App() {
                       const saved = await saveGame(g);
                       setGame(saved);
                     }}
+                    onBack={handleBackToTerminal}
                   />
-                </div>
-                {/* Floating Back Button (for when in game) */}
-                <div className="absolute top-4 right-4 z-50">
-                  <button
-                    onClick={handleBackToTerminal}
-                    className="px-4 py-2 bg-black/50 hover:bg-black/80 text-gray-400 hover:text-white text-xs font-mono border border-gray-700 rounded transition-colors backdrop-blur-md"
-                  >
-                    ← BACK TO TERMINAL
-                  </button>
                 </div>
               </div>
             }

@@ -122,20 +122,6 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
         height={600}
         className="max-w-full max-h-full shadow-2xl cursor-crosshair bg-[#050505]"
       />
-
-      {/* UI Overlay for game instructions */}
-      <div className="absolute top-4 left-4 pointer-events-none">
-        <h2 className="text-2xl font-black text-white drop-shadow-md tracking-tighter uppercase italic bg-black/50 px-2">
-          {gameDef.title}
-        </h2>
-        <p className="text-sm text-zinc-300 bg-black/50 px-2 mt-1 max-w-md">
-          {gameDef.description}
-        </p>
-      </div>
-
-      <div className="absolute bottom-4 right-4 text-xs text-zinc-600 font-mono">
-        HARNESS v1.0.4 :: RENDER_LOOP_ACTIVE
-      </div>
     </div>
   );
 };

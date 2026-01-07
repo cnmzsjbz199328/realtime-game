@@ -53,14 +53,16 @@ export class RemoteAIService implements IGameGenerator, ICodeFixer {
       Constraints:
       1. The game must be simple but fun.
       2. Use standard HTML5 Canvas API (ctx.fillStyle, ctx.fillRect, ctx.beginPath, etc.).
-      3. Do NOT use external libraries or images. Use 'ctx' to draw geometric shapes (rectangles, circles) to represent game objects.
+      3. Do NOT use external libraries or images. Use 'ctx' to draw geometric shapes.
       4. The 'state' object is your memory. Persist all game data there.
       5. The 'input' object gives you mouse/touch coordinates and key states.
       6. Make the game resilient. Don't write infinite loops.
       7. Visuals: Use neon colors (cyan, magenta, lime) on dark backgrounds to fit the aesthetic.
-      8. IMPORTANT: 'canvas' and 'ctx' are passed as arguments. DO NOT redeclare them (e.g. 'const canvas = ...' will crash). USE THE PROVIDED ARGUMENTS.
+      8. IMPORTANT: 'canvas' and 'ctx' are passed as arguments. DO NOT redeclare them.
       9. UX REQUIREMENT: You MUST implement a 'Start Screen' and a 'Game Over Screen' with a clickable Start/Restart button region.
-      10. GAMEPLAY REQUIREMENT: Default to a multi-level structure (unless user implies otherwise). Increase difficulty/speed as levels progress.
+      10. GAMEPLAY REQUIREMENT: Default to a multi-level structure. Increase difficulty/speed as levels progress.
+      11. CRITICAL: Do NOT call any helper functions (like 'spawnEnemy()') unless you define them INSIDE the provided code strings. It is safer to write logic inline or define functions as 'state.spawnEnemy = () => { ... }' in setupCode.
+      12. CRITICAL: Initialize ALL arrays and objects in 'setupCode' (e.g., 'state.enemies = []'). Never verify them in 'updateCode' without checking existence first.
 
       Topic: ${topic}
 

@@ -31,21 +31,6 @@ export const InputSection: React.FC<InputSectionProps> = ({ inputSource, onGener
     return (
         <div className="flex flex-col items-center text-center space-y-8 w-full">
 
-            {/* System Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-cyan/30 bg-brand-cyan/5 text-brand-cyan text-xs font-mono mb-4">
-                <span className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse"></span>
-                System Online v2.4
-            </div>
-
-            {/* Hero Title */}
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight text-white">
-                Initialize Your <span className="text-brand-cyan neon-text">World</span>
-            </h1>
-
-            <p className="text-gray-400 text-lg max-w-2xl font-light">
-                Enter a prompt to generate a real-time custom game experience in the digital playfield. The only limit is your input.
-            </p>
-
             {/* Input Box - Only visible when NOT busy */}
             {!isBusy && (
                 <div className="w-full max-w-2xl mt-12 relative group input-glow rounded-xl transition-all duration-300 z-20 animate-fade-in-up">
@@ -70,11 +55,6 @@ export const InputSection: React.FC<InputSectionProps> = ({ inputSource, onGener
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             GENERATE
                         </button>
-                    </div>
-
-                    <div className="w-full flex justify-between text-xs font-mono text-gray-600 mt-2 px-4 uppercase tracking-widest">
-                        <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Ready for input...</div>
-                        <div>Memory: 64GB / CPU: 12%</div>
                     </div>
                 </div>
             )}
