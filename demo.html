@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameGen UI Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Space Grotesk', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            dark: '#020C10', // Deepest background
+                            panel: '#07161B', // Card background
+                            cyan: '#00E5FF',  // Bright accent
+                            teal: '#005F73',  // Muted accent
+                            text: '#E0F2F1'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px #00E5FF20' },
+                            '100%': { boxShadow: '0 0 20px #00E5FF60, 0 0 10px #00E5FF' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020C10;
+            background-image: radial-gradient(circle at 50% 0%, #0c363f 0%, #020C10 60%);
+            color: #E0F2F1;
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(7, 22, 27, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+        }
+
+        .input-glow:focus-within {
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+            border-color: rgba(0, 229, 255, 0.5);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #020C10;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0f3d46;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #185560;
+        }
+    </style>
+</head>
+
+<body class="font-sans antialiased selection:bg-brand-cyan selection:text-black">
+
+    <!-- Navbar -->
+    <nav class="w-full flex justify-between items-center p-6 max-w-7xl mx-auto z-50 relative">
+        <div class="flex items-center gap-2 group cursor-pointer">
+            <div
+                class="w-8 h-8 bg-gradient-to-br from-brand-cyan to-blue-600 rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition-transform">
+                <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <span class="font-bold text-xl tracking-wide">GameGen</span>
+        </div>
+
+        <div class="glass-panel rounded-full px-1 py-1 flex gap-1">
+            <button onclick="switchTab('home')" id="btn-home"
+                class="px-6 py-2 rounded-full text-sm font-medium transition-all bg-brand-cyan text-black shadow-[0_0_15px_rgba(0,229,255,0.4)]">Home</button>
+            <button onclick="switchTab('leaderboard')" id="btn-leaderboard"
+                class="px-6 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white transition-all hover:bg-white/5">Leaderboard</button>
+        </div>
+
+        <div class="w-8"></div> <!-- Spacer for center alignment -->
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="relative z-10 w-full max-w-5xl mx-auto mt-12 px-4 transition-all duration-500 ease-out"
+        id="content-area">
+
+        <!-- HOME VIEW CONTAINER (Perspective for 3D Flip) -->
+        <div id="view-home" class="relative w-full max-w-4xl mx-auto h-[600px] perspective-1000 animate-fade-in-up">
+
+            <!-- FLIP CARD INNER -->
+            <div id="flip-card" class="relative w-full h-full transition-transform duration-1000 transform-style-3d">
+
+                <!-- FRONT: INPUT & TERMINAL -->
+                <div class="absolute w-full h-full backface-hidden flex flex-col items-center">
+
+                    <!-- Hero Text -->
+                    <div class="text-center space-y-6 mb-12">
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-cyan/30 bg-brand-cyan/5 text-brand-cyan text-xs font-mono">
+                            <span class="w-2 h-2 rounded-full bg-brand-cyan animate-pulse"></span>
+                            System Online v2.4
+                        </div>
+                        <h1 class="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+                            Initialize Your <span class="text-brand-cyan neon-text">World</span>
+                        </h1>
+                    </div>
+
+                    <!-- Input Box (Should be hidden/transformed when generating) -->
+                    <div id="input-container"
+                        class="w-full max-w-2xl relative group input-glow rounded-xl transition-all duration-300 z-20">
+                        <div class="glass-panel rounded-xl p-2 flex items-center gap-4">
+                            <div class="pl-4 text-brand-cyan opacity-50"><svg class="w-6 h-6" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg></div>
+                            <input type="text" id="game-prompt" placeholder="Describe your game..."
+                                class="flex-1 bg-transparent border-none outline-none text-white text-lg font-mono placeholder-gray-600 h-14">
+                            <button onclick="startGeneration()"
+                                class="bg-brand-cyan hover:bg-cyan-300 text-black font-bold py-3 px-8 rounded-lg shadow-[0_0_20px_rgba(0,229,255,0.3)] transition-transform active:scale-95">GENERATE</button>
+                        </div>
+                    </div>
+
+                    <!-- TERMINAL LOGS (Mockup - Appears after clicking Generate) -->
+                    <div id="terminal-logs"
+                        class="hidden w-full max-w-2xl mt-8 font-mono text-sm bg-black/80 border border-gray-800 rounded-lg p-4 h-64 overflow-hidden relative shadow-2xl">
+                        <div
+                            class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-cyan to-transparent opacity-50">
+                        </div>
+                        <div class="space-y-2 text-green-400">
+                            <div>> INIT_SEQUENCE_START</div>
+                            <div class="opacity-0 animate-fade-in" style="animation-delay: 0.5s">>
+                                PARSING_NATURAL_LANGUAGE... OK</div>
+                            <div class="opacity-0 animate-fade-in" style="animation-delay: 1.2s">>
+                                GENERATING_GAME_ENGINE_LOGIC...</div>
+                            <div class="opacity-0 animate-fade-in" style="animation-delay: 2.5s">> COMPILING_ASSETS...
+                            </div>
+                            <div class="opacity-0 animate-fade-in text-brand-cyan" style="animation-delay: 3.5s">>
+                                DEPLOYING_TO_CANVAS...</div>
+                        </div>
+                        <!-- Scanline effect -->
+                        <div
+                            class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 pointer-events-none bg-[length:100%_4px,3px_100%]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BACK: GAME CANVAS -->
+                <div
+                    class="absolute w-full h-full backface-hidden rotate-y-180 flex items-center justify-center bg-black/90 rounded-xl border border-brand-cyan/20 shadow-[0_0_50px_rgba(0,229,255,0.1)]">
+                    <div class="text-center">
+                        <h2 class="text-3xl font-bold text-white mb-4">GAME READY</h2>
+                        <div
+                            class="w-[700px] h-[500px] bg-gray-900 mx-auto rounded flex items-center justify-center border border-gray-700">
+                            <span class="text-gray-500 font-mono">CANVAS RENDER AREA</span>
+                        </div>
+                        <button onclick="resetView()"
+                            class="mt-6 px-6 py-2 border border-gray-600 rounded text-gray-400 hover:text-white hover:border-white transition-colors">BACK
+                            TO TERMINAL</button>
+                        <button
+                            class="mt-6 ml-4 px-6 py-2 bg-brand-cyan text-black font-bold rounded shadow-[0_0_15px_rgba(0,229,255,0.4)]">SAVE
+                            TO LEADERBOARD</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <style>
+            .perspective-1000 {
+                perspective: 1000px;
+            }
+
+            .transform-style-3d {
+                transform-style: preserve-3d;
+            }
+
+            .backface-hidden {
+                backface-visibility: hidden;
+            }
+
+            .rotate-y-180 {
+                transform: rotateY(180deg);
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(5px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .animate-fade-in {
+                animation: fadeIn 0.3s forwards;
+            }
+        </style>
+
+        <script>
+            function startGeneration() {
+                const term = document.getElementById('terminal-logs');
+                const card = document.getElementById('flip-card');
+
+                // 1. Show Terminal
+                term.classList.remove('hidden');
+
+                // 2. Simulate Delay then Flip
+                setTimeout(() => {
+                    card.classList.add('rotate-y-180');
+                }, 4500); // 4.5s delay to match log animation roughly
+            }
+
+            function resetView() {
+                const card = document.getElementById('flip-card');
+                const term = document.getElementById('terminal-logs');
+                card.classList.remove('rotate-y-180');
+                setTimeout(() => {
+                    term.classList.add('hidden'); // Hide logs after flipping back
+                }, 500);
+            }
+        </script>
+
+        <!-- LEADERBOARD VIEW (Hidden by default) -->
+        <div id="view-leaderboard" class="hidden flex-col w-full animate-fade-in-up">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold uppercase tracking-wider mb-2"></h2>
+                <div class="text-brand-cyan text-sm font-mono tracking-[0.3em]"></div>
+            </div>
+
+            <!-- Top 3 Showcase (Horizontal Bars) -->
+            <div class="flex flex-col gap-6 mb-12 max-w-4xl mx-auto w-full">
+
+                <!-- #2 Rank -->
+                <div
+                    class="glass-panel p-6 rounded-xl relative overflow-hidden group hover:border-brand-cyan/30 transition-all">
+                    <div
+                        class="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-gray-700/20 to-transparent w-[75%] transition-all duration-1000 group-hover:w-[78%]">
+                    </div>
+                    <div class="relative flex justify-between items-center z-10">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-gray-800 border-2 border-gray-400 flex items-center justify-center text-2xl">
+                                🥈</div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white group-hover:text-brand-cyan transition-colors">
+                                    ViperMist</h3>
+                                <p class="text-sm text-gray-400 max-w-md truncate">A stealth action game where you
+                                    navigate through neon-lit futuristic cities.</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-mono text-white font-bold">90,150</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-widest">LIKES</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- #1 Rank -->
+                <div
+                    class="glass-panel p-6 rounded-xl relative overflow-hidden group border-brand-cyan/20 hover:border-brand-cyan/60 scale-105 shadow-[0_0_30px_rgba(0,0,0,0.5)] z-10 transition-all">
+                    <div
+                        class="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-yellow-900/40 to-transparent w-[92%] transition-all duration-1000 group-hover:w-[95%]">
+                    </div>
+                    <div class="absolute -right-6 -top-6 text-yellow-500/10 text-9xl font-black">#1</div>
+                    <div class="relative flex justify-between items-center z-10">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-16 h-16 rounded-full bg-gray-800 border-4 border-yellow-400 flex items-center justify-center text-4xl shadow-[0_0_15px_rgba(250,204,21,0.4)]">
+                                🥇</div>
+                            <div>
+                                <h3 class="text-3xl font-bold text-white group-hover:text-yellow-400 transition-colors">
+                                    CyberNinja</h3>
+                                <p class="text-sm text-gray-300 max-w-lg truncate">Fast-paced katana combat with
+                                    time-bending mechanics.</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-4xl font-mono text-yellow-400 font-bold drop-shadow-sm">98,200</div>
+                            <div class="text-xs text-yellow-500/80 uppercase tracking-widest">LIKES</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- #3 Rank -->
+                <div
+                    class="glass-panel p-6 rounded-xl relative overflow-hidden group hover:border-brand-cyan/30 transition-all">
+                    <div
+                        class="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-orange-900/20 to-transparent w-[60%] transition-all duration-1000 group-hover:w-[63%]">
+                    </div>
+                    <div class="relative flex justify-between items-center z-10">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-12 h-12 rounded-full bg-gray-800 border-2 border-orange-700 flex items-center justify-center text-2xl">
+                                🥉</div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white group-hover:text-orange-500 transition-colors">
+                                    NeonRider</h3>
+                                <p class="text-sm text-gray-400 max-w-md truncate">Endless runner on a synthwave highway
+                                    avoiding obstacles.</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-mono text-white font-bold">88,150</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-widest">LIKES</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- List -->
+            <div class="space-y-3 max-w-4xl mx-auto w-full">
+                <!-- Row Item -->
+                <div
+                    class="glass-panel rounded-lg p-4 flex items-center hover:bg-white/5 transition-colors cursor-pointer group">
+                    <div class="w-12 text-2xl font-bold text-gray-600 font-mono">04</div>
+                    <div class="w-10 h-10 rounded bg-gray-700 mr-4 overflow-hidden">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Glitch" alt="avatar" />
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-bold text-white group-hover:text-brand-cyan">GlitchKing</div>
+                        <div class="text-xs text-gray-500 uppercase">Division: Diamond II</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-mono text-white">85,200</div>
+                    </div>
+                </div>
+
+                <div
+                    class="glass-panel rounded-lg p-4 flex items-center hover:bg-white/5 transition-colors cursor-pointer group">
+                    <div class="w-12 text-2xl font-bold text-gray-600 font-mono">05</div>
+                    <div class="w-10 h-10 rounded bg-gray-700 mr-4 overflow-hidden">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Star" alt="avatar" />
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-bold text-white group-hover:text-brand-cyan">StarDust</div>
+                        <div class="text-xs text-gray-500 uppercase">Division: Platinum I</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-mono text-white">72,150</div>
+                    </div>
+                </div>
+
+                <div
+                    class="glass-panel rounded-lg p-4 flex items-center hover:bg-white/5 transition-colors cursor-pointer group">
+                    <div class="w-12 text-2xl font-bold text-gray-600 font-mono">06</div>
+                    <div class="w-10 h-10 rounded bg-gray-700 mr-4 overflow-hidden">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Void" alt="avatar" />
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-bold text-white group-hover:text-brand-cyan">VoidWalker</div>
+                        <div class="text-xs text-gray-500 uppercase">Division: Platinum III</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-mono text-white">68,900</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="fixed bottom-0 w-full p-4 text-center text-gray-600 text-xs font-mono pointer-events-none">
+        &copy; 2024 GameGen Studios. All systems nominal.
+    </footer>
+
+    <script>
+        function switchTab(tab) {
+            const homeView = document.getElementById('view-home');
+            const lbView = document.getElementById('view-leaderboard');
+            const btnHome = document.getElementById('btn-home');
+            const btnLb = document.getElementById('btn-leaderboard');
+
+            if (tab === 'home') {
+                homeView.classList.remove('hidden');
+                lbView.classList.add('hidden');
+
+                btnHome.className = "px-6 py-2 rounded-full text-sm font-medium transition-all bg-brand-cyan text-black shadow-[0_0_15px_rgba(0,229,255,0.4)]";
+                btnLb.className = "px-6 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white transition-all hover:bg-white/5";
+            } else {
+                homeView.classList.add('hidden');
+                lbView.classList.remove('hidden');
+                lbView.classList.add('flex'); // Ensure flex is added back
+
+                btnHome.className = "px-6 py-2 rounded-full text-sm font-medium text-gray-400 hover:text-white transition-all hover:bg-white/5";
+                btnLb.className = "px-6 py-2 rounded-full text-sm font-medium transition-all bg-brand-cyan text-black shadow-[0_0_15px_rgba(0,229,255,0.4)]";
+            }
+        }
+    </script>
+</body>
+
+</html>

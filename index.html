@@ -6,47 +6,101 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GenGame Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace'],
+          },
+          colors: {
+            brand: {
+              dark: '#020C10', // Deepest background
+              panel: '#07161B', // Card background
+              cyan: '#00E5FF',  // Bright accent
+              teal: '#005F73',  // Muted accent
+              text: '#E0F2F1'
+            }
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'glow': 'glow 2s ease-in-out infinite alternate',
+            'spin-slow': 'spin 3s linear infinite',
+          },
+          keyframes: {
+            glow: {
+              '0%': { boxShadow: '0 0 5px #00E5FF20' },
+              '100%': { boxShadow: '0 0 20px #00E5FF60, 0 0 10px #00E5FF' }
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap');
-
     body {
+      background-color: #020C10;
+      background-image: radial-gradient(circle at 50% 0%, #0c363f 0%, #020C10 60%);
+      color: #E0F2F1;
+      min-height: 100vh;
       font-family: 'Inter', sans-serif;
-      background-color: #09090b;
-      color: #e4e4e7;
     }
 
-    .font-mono {
-      font-family: 'JetBrains Mono', monospace;
+    .glass-panel {
+      background: rgba(7, 22, 27, 0.6);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 229, 255, 0.1);
     }
 
-    /* Custom scrollbar for terminal look */
+    .neon-text {
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+    }
+
+    .input-glow:focus-within {
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+      border-color: rgba(0, 229, 255, 0.5);
+    }
+
+    /* 3D Flip Utilities */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+
+    /* Custom scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: #18181b;
+      background: #020C10;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #3f3f46;
+      background: #0f3d46;
       border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #52525b;
+      background: #185560;
     }
   </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
-  }
-}
-</script>
 </head>
 
 <body>

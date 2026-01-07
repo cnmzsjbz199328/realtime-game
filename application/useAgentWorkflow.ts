@@ -101,9 +101,10 @@ export const useAgentWorkflow = (
     };
 
     const handleCrash = useCallback((error: string) => {
-        addLog('QA', `Runtime Error Detected in Production: ${error}`);
-        addLog('QA', 'Initiating emergency rollback...');
-        setStatus(AgentStatus.FAILED);
+        addLog('QA', `Runtime Error Detected: ${error}`);
+        // We do NOT set status to FAILED here, because we want the user to see the error overlay
+        // on the game canvas (GameHarness handles the UI).
+        // If we set FAILED, it flips back to the terminal, confusing the user.
     }, []);
 
     return {
