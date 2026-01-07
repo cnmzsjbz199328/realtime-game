@@ -14,6 +14,12 @@ export interface GameDefinition {
     updateCode: string; // Javascript code string
 }
 
+export interface SavedGame extends GameDefinition {
+    id: string;
+    likes: number;
+    timestamp: number;
+}
+
 export interface AgentLog {
     id: string;
     agent: 'DIRECTOR' | 'ENGINEER' | 'QA';
@@ -47,4 +53,11 @@ export interface ICodeFixer {
 // Port: Who validates the work
 export interface IGameValidator {
     validate(game: GameDefinition): Promise<{ passed: boolean; error?: string }>;
+}
+
+// Port: Who saves the work
+export interface IGameRepository {
+    save(game: GameDefinition): Promise<SavedGame>;
+    getAll(): Promise<SavedGame[]>;
+    like(id: string): Promise<void>;
 }

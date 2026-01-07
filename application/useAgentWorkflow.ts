@@ -110,6 +110,8 @@ export const useAgentWorkflow = (
         status,
         logs,
         game,
+        setGame,
+        setStatus,
         startWorkflow,
         handleCrash
     };
