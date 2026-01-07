@@ -24,7 +24,7 @@ Just return the raw JSON object.
 export class RemoteAIService implements IGameGenerator, ICodeFixer {
     private async queryLargeModel(messages: AIMessage[]): Promise<string> {
         const response = await fetch(
-            'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large',
+            '/api/ai',
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

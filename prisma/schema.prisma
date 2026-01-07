@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SavedGame {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  setupCode   String   
+  updateCode  String   
+  likes       Int      @default(0)
+  createdAt   DateTime @default(now())
+}

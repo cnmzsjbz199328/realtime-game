@@ -9,14 +9,16 @@ import { useGameCollection } from './application/useGameCollection';
 import { RemoteAIService } from './infrastructure/ai/RemoteAIService';
 import { HeadlessBrowserValidator } from './infrastructure/qa/HeadlessBrowserValidator';
 import { DirectInputSource } from './infrastructure/input/DirectInputSource';
-import { LocalGameRepository } from './infrastructure/persistence/LocalGameRepository';
+// import { LocalGameRepository } from './infrastructure/persistence/LocalGameRepository';
+import { PostgresGameRepository } from './infrastructure/persistence/PostgresGameRepository';
 import { AgentStatus, GameDefinition } from './core/domain/types';
 
 // Composition Root: Instantiate Services
 const aiService = new RemoteAIService();
 const validator = new HeadlessBrowserValidator();
 const directInput = new DirectInputSource();
-const gameRepo = new LocalGameRepository();
+// const gameRepo = new LocalGameRepository();
+const gameRepo = new PostgresGameRepository();
 
 function App() {
   // Inject Services into Application Logic
