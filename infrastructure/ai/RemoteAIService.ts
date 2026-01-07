@@ -58,7 +58,9 @@ export class RemoteAIService implements IGameGenerator, ICodeFixer {
       5. The 'input' object gives you mouse/touch coordinates and key states.
       6. Make the game resilient. Don't write infinite loops.
       7. Visuals: Use neon colors (cyan, magenta, lime) on dark backgrounds to fit the aesthetic.
-      8. IMPORTANT: Ensure 'input' is checked safely.
+      8. IMPORTANT: 'canvas' and 'ctx' are passed as arguments. DO NOT redeclare them (e.g. 'const canvas = ...' will crash). USE THE PROVIDED ARGUMENTS.
+      9. UX REQUIREMENT: You MUST implement a 'Start Screen' and a 'Game Over Screen' with a clickable Start/Restart button region.
+      10. GAMEPLAY REQUIREMENT: Default to a multi-level structure (unless user implies otherwise). Increase difficulty/speed as levels progress.
 
       Topic: ${topic}
 
@@ -72,11 +74,13 @@ export class RemoteAIService implements IGameGenerator, ICodeFixer {
       }
 
       setupCode description:
-      JavaScript code body for the 'setup' function. Run once. You have access to 'ctx' (CanvasRenderingContext2D), 'canvas' (HTMLCanvasElement), and a 'state' object (empty object) to store variables. Initialize your game state variables (player position, score, enemies array etc) here. Example: state.player = {x: 100, y: 100}; state.score = 0;
+      JavaScript code body for the 'setup' function. Run once. You have access to 'ctx' (CanvasRenderingContext2D), 'canvas' (HTMLCanvasElement), and a 'state' object (empty object) to store variables. Initialize your game state variables (player position, score, level, gameState='MENU', enemies array etc) here. Example: state.player = {x: 100, y: 100}; state.score = 0; state.level = 1; state.gameState = 'MENU';
 
       updateCode description:
-      JavaScript code body for the 'update' function. Run every frame (60fps). You have access to 'ctx', 'canvas', 'state', and 'input'. 'input' has properties: x (mouse x), y (mouse y), isDown (boolean), and keys (object of booleans). Clear the canvas using ctx.clearRect first. Draw the game state. Update positions. Handle collisions. If game over, set state.gameOver = true.
-
+      JavaScript code body for the 'update' function. Run every frame (60fps). You have access to 'ctx', 'canvas', 'state', and 'input'. 'input' has properties: x (mouse x), y (mouse y), isDown (boolean), and keys (object of booleans). 
+      Structure your loop to handle state.gameState === 'MENU' (draw start button), 'PLAYING' (game logic), and 'GAMEOVER' (draw restart button).
+      Clear the canvas using ctx.clearRect first. Draw the game state. Update positions. Handle collisions. If game over, set state.gameState = 'GAMEOVER'.
+      
       ${EXTRACT_JSON_PROMPT}
     `;
 
