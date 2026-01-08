@@ -60,21 +60,23 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
                     </div>
 
                     {/* BOTTOM LEFT INFO PANEL (Auto-Collapsing) */}
-                    <div className="absolute bottom-6 left-6 z-40 max-w-md pointer-events-auto">
+                    <div className="absolute bottom-6 left-6 z-40 max-w-md pointer-events-auto transition-all duration-500">
                         <div
                             className={`
-                                relative backdrop-blur-md border-l-4 border-brand-cyan transition-all duration-500 ease-in-out cursor-pointer overflow-hidden
-                                ${isInfoExpanded ? 'bg-black/80 p-5 rounded-r-xl shadow-2xl translate-y-0' : 'bg-black/40 p-3 rounded-r-lg hover:bg-black/60 translate-y-2'}
+                                relative transition-all duration-500 ease-in-out cursor-pointer overflow-hidden
+                                ${isInfoExpanded
+                                    ? 'bg-black/90 backdrop-blur-md p-5 rounded-r-xl shadow-2xl border-l-4 border-brand-cyan translate-y-0'
+                                    : 'bg-transparent p-2 border-l-0 translate-y-2'
+                                }
                             `}
                             onClick={() => setIsInfoExpanded(!isInfoExpanded)}
-                            onMouseEnter={() => setIsInfoExpanded(true)}
                         >
                             <div className="flex items-center gap-3">
-                                <h2 className={`font-bold text-white tracking-tight transition-all duration-300 ${isInfoExpanded ? 'text-xl' : 'text-sm opacity-80'}`}>
+                                <h2 className={`font-bold text-white tracking-tight transition-all duration-300 drop-shadow-md ${isInfoExpanded ? 'text-xl' : 'text-sm opacity-50 hover:opacity-100'}`}>
                                     {game.title}
                                 </h2>
                                 {!isInfoExpanded && (
-                                    <span className="text-[10px] text-brand-cyan uppercase tracking-widest animate-pulse">Info</span>
+                                    <span className="text-[10px] text-brand-cyan uppercase tracking-widest opacity-50 drop-shadow-sm">Info</span>
                                 )}
                             </div>
 
