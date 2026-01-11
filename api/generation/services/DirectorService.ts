@@ -10,33 +10,33 @@ export class DirectorService implements IDirector {
         const skeletonDirectory = getSkeletonDirectory();
         console.log('[DIRECTOR] Loaded skeleton directory with', skeletonDirectory.split('\n').length, 'types');
 
-        const prompt = `你是游戏设计总监。你的任务是分析用户需求，选择最合适的游戏类型骨架，并扩展为详细的游戏设计描述。
+        const prompt = `You are a Game Design Director. Your task is to analyze user requirements, select the most suitable game skeleton, and expand it into a detailed game design description.
 
-可用的游戏类型骨架：
+Available Game Skeletons:
 ${skeletonDirectory}
 
-用户需求: "${topic}"
+User Requirements: "${topic}"
 
-任务:
-1. 分析用户需求，理解核心意图
-2. 从上述骨架中选择最合适的类型
-3. 将用户需求扩展为以**故事和主题**为核心的游戏设计
+Tasks:
+1. Analyze user requirements and understand core intent.
+2. Select the most suitable skeleton ID from the list above.
+3. Expand user requirements into a **Story and Theme** focused game design.
 
-扩展设计时必须侧重于:
-- **游戏世界观与故事背景**: 玩家是谁？敌人的来历？任务的目标？
-- **视觉主题与氛围**: 结合强制的霓虹配色，描述场景设定 (如"赛博丛林"、"数字虚空")
-- **角色与实体设定**: 将抽象的方块/圆圈赋予故事意义 (例如: "玩家是反抗军战机，敌人是帝国无人机")
-- **关卡进阶概念**: 难度提升在故事中意味着什么？
+When expanding the design, focus on:
+- **World & Story**: Who is the player? Origin of enemies? Mission goal?
+- **Visual Theme & Atmosphere**: Combine with mandatory Neon colors, describe the setting (e.g., "Cyber Jungle", "Digital Void").
+- **Roles & Entities**: Give story meaning to abstract shapes (e.g., "Player is a rebel fighter, enemies are imperial drones").
+- **Progression Concept**: What does difficulty increase mean in the story context?
 
-输出格式（仅返回 JSON，不要包含任何其他文本）:
+Output Format (Return JSON only, no other text):
 {
-  "skeletonId": "选择的骨架ID",
-  "expandedDesign": "详细的游戏设计描述（侧重故事与设定，至少100字）"
+  "skeletonId": "Selected Skeleton ID",
+  "expandedDesign": "Detailed game design description (Focus on story and setting, at least 100 words)"
 }
 
-重要提示:
-- 如果不确定，选择 universal_minimal
-- expandedDesign 必须富有想象力，为游戏注入灵魂`;
+Important Notes:
+- If uncertain, select 'universal_minimal'.
+- expandedDesign must be imaginative and inject 'soul' into the game.`;
 
         console.log('[DIRECTOR] Calling AI for classification...');
         const startTime = Date.now();
@@ -79,7 +79,7 @@ ${skeletonDirectory}
             console.log('[DIRECTOR] Falling back to universal_minimal');
             return {
                 skeletonId: 'universal_minimal',
-                expandedDesign: `基于用户需求"${topic}"的游戏。使用霓虹配色（青色/品红/黄色），包含3个难度等级。玩家通过鼠标和键盘交互，目标是获得高分。`
+                expandedDesign: `Game based on user request "${topic}". Uses neon color scheme (Cyan/Magenta/Yellow), includes 3 difficulty levels. Player interacts via mouse/keyboard, goal is to achieve high score.`
             };
         }
     }

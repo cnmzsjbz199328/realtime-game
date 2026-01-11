@@ -7,41 +7,41 @@ export class FixerService implements IFixer {
         console.log('[FIXER] Game:', game.title);
         console.log('[FIXER] Error:', error);
 
-        const prompt = `你是高级游戏工程师，专门负责调试和修复代码错误。
+        const prompt = `You are a Senior Game Engineer specializing in debugging and code fixing.
 
-当前游戏代码在 QA 测试中失败。
+The current game code failed in QA testing.
 
-运行时错误: "${error}"
+Runtime Error: "${error}"
 
-当前代码 (code):
+Current Code:
 ${game.code}
 
-任务: 修复代码中的 bug
+Task: Fix bugs in the code.
 
-修复指南:
-1. 如果错误涉及 "strict mode" 或 "eval"/"arguments"，请移除所有 eval() 调用，重命名任何名为 arguments/eval 的变量，并改用显式参数传递。
-2. 如果错误涉及 "Canvas element not found" 或 "getContext"，**删除所有 DOM 获取代码** (如 document.getElementById)，直接使用 draw 方法参数中的 ctx。
-3. 确保代码是单闭包结构，导出接口必须为: return { init: (state, width, height) => void, update, draw }。
-4. 保持游戏核心逻辑不变。
-5. ⚠️ CRITICAL: width 和 height 参数仅在 init 和 draw 中可用。在 update(state, input, deltaTime) 中**绝对不可**直接使用 width/height，必须使用 state.width / state.height (需在 init 中保存)。
-6. ⚠️ 数组访问前必须检查边界 (y < grid.length && x < grid[y].length)。
+Fix Guidelines:
+1. If error involves "strict mode" or "eval"/"arguments", remove all eval() calls, rename arguments/eval variables, use explicit parameter passing.
+2. If error involves "Canvas element not found" or "getContext", **REMOVE ALL DOM ACCESS CODE** (e.g. document.getElementById), strictly use ctx from draw parameters.
+3. Ensure single closure structure, exported interface must be: return { init: (state, width, height) => void, update, draw }.
+4. Maintain core game logic.
+5. ⚠️ CRITICAL: width and height are ONLY available in init and draw. In update(state, input, deltaTime), you **MUST NOT** use width/height directly; use state.width/state.height (saved in init).
+6. ⚠️ Check array boundaries (safe access) before accessing.
 
-=== 输出格式 (Strict Text Format) ===
-请严格按照以下格式输出，不要包含 Markdown 代码块包裹整个回复：
+=== Output Format (Strict Text Format) ===
+Strictly output in the following format, do not wrap response in markdown code blocks:
 
 TITLE: ${game.title}
 DESCRIPTION: ${game.description}
 CODE:
 \`\`\`javascript
-// 修复后的代码
+// Fixed code
 \`\`\`
 
-=== 重要提示 ===
-1. 不要输出 JSON
-2. CODE: 后面必须是 markdown 代码块
-3. 绝对禁止访问 document/window/canvas 等全局对象
-4. 绝对禁止使用 new Image() 或 new Audio()，只能用 Canvas 绘图
-5. 绝对禁止使用 requestAnimationFrame 自建循环`;
+=== Important Constraints ===
+1. Do NOT output JSON
+2. CODE: must be followed by markdown code block
+3. Strictly forbidden to access document/window/canvas global objects
+4. Strictly forbidden to use new Image() or new Audio(), use Canvas API only
+5. Strictly forbidden to use requestAnimationFrame custom loops`;
 
         console.log('[FIXER] Calling AI for bug fix...');
         const startTime = Date.now();

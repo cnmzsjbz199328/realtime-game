@@ -19,125 +19,123 @@ ${expandedDesign}
 `;
 
         const prompt = `
-你是专业游戏工程师。根据以下游戏设计，生成完整、可玩、无BUG的 HTML5 Canvas 游戏代码。
+You are a professional game engineer. Based on the following game design, generate complete, playable, bug-free HTML5 Canvas game code.
 
-=== 游戏设计 ===
+=== Game Design ===
 ${gameDesignContext}
 
-=== 代码结构规范 ===
+=== Code Structure Guidelines ===
 
-⚠️ CRITICAL RULE: width 和 height 参数的作用域
-- init(state, width, height)  ✅ 可用 width/height
-- update(state, input, deltaTime)  ❌ 上下文中没有 width/height，必须使用 state.width/state.height
-- draw(state, ctx, width, height)  ✅ 可用 width/height
+⚠️ CRITICAL RULE: Scope of width and height parameters
+- init(state, width, height)  ✅ Available width/height
+- update(state, input, deltaTime)  ❌ NO width/height in context, MUST use state.width/state.height
+- draw(state, ctx, width, height)  ✅ Available width/height
 
-必须返回以下接口对象：
-
-=== 必须遵守的代码结构 ===
+=== Mandatory Code Structure ===
 1. **init(state, width, height)**:
-   - 必须保存 width 和 height 到 state (state.width = width) 供 update 使用。
-   - 初始化场景 (MENU)、分数、游戏对象等。
+   - Must save width and height to state (state.width = width) for use in update.
+   - Initialize scenes (MENU), score, game objects, etc.
 2. **update(state, input, deltaTime)**:
-   - 处理输入 (input.isDown) 和业务逻辑。
-   - 严禁使用全局 width/height，必须使用 state.width。
+   - Handle input (input.isDown) and game logic.
+   - Strictly forbidden to use global width/height, must use state.width.
 3. **draw(state, ctx, width, height)**:
-   - 使用 ctx 绘制每一帧。
-   - 必须处理 MENU, PLAYING, GAMEOVER 三种状态的渲染。
+   - Use ctx to draw each frame.
+   - Must handle rendering for MENU, PLAYING, GAMEOVER states.
 
-=== 核心状态管理 (State) ===
-state 对象建议包含:
-- width, height: 画布尺寸 (必须)
-- scene: 当前场景 ('MENU', 'PLAYING', 'GAMEOVER')
-- game: 游戏主逻辑实例 (建议使用 class Game 封装)
-- score: 分数
-- wasDown: 用于检测点击
+=== Core State Management (State) ===
+state object recommended to include:
+- width, height: Canvas dimensions (Mandatory)
+- scene: Current scene ('MENU', 'PLAYING', 'GAMEOVER')
+- game: Main game logic instance (Recommend using class Game encapsulation)
+- score: Score
+- wasDown: For tracking click events
 
-=== 代码质量要求 ===
+=== Code Quality Requirements ===
 
-✅ 必须实现：
-1. 三个游戏场景：开始菜单(MENU)、游戏进行(PLAYING)、游戏结束(GAMEOVER)
-2. 清晰的操作提示（必须显示在屏幕上，如"按WASD移动"）
-3. 点击事件检测（通过 isDown 状态变化判断）
-4. Canvas 尺寸保存到 state（供 update 使用）
+✅ Must Implement:
+1. Three game scenes: Start Menu (MENU), Gameplay (PLAYING), Game Over (GAMEOVER)
+2. Clear operation instructions (Must be displayed on screen, e.g., "Press WASD to move")
+3. Click event detection (By monitoring isDown state changes)
+4. Save Canvas dimensions to state (For use in update)
 
-❌ 必须避免的错误：
-1. **作用域错误**：在 update 方法中直接使用 width/height（必须用 state.width/state.height）
-2. **数组越界**：访问 array[y][x] 前必须检查 y < array.length && x < array[y].length
-3. **除零错误**：计算 v/length 前检查 length > 0 或 length !== 0
-4. **无限循环**：使用 while/for 循环必须有明确的退出条件或计数器限制
-5. **未初始化变量**：所有 state 属性必须在 init 中初始化
-6. **输入处理错误**：不要假设 input.clicked 存在，必须自己检测 isDown 变化
-7. **DOM访问**：严禁在代码中使用 document, window, canvas, context 等全局对象。绘图必须使用 draw 方法的 ctx 参数。
-8. **外部资源**: 严禁加载本地或网络图片/音频 (如 new Image, new Audio)。所有视觉效果必须使用 Context2D API (rect, arc, lineTo) 纯代码绘制。
-9. **私自循环**: 严禁使用 requestAnimationFrame, setInterval, setTimeout 来驱动游戏循环。必须依赖传入的 update 方法。
+❌ Errors to Avoid:
+1. **Scope Error**: Directly using width/height in update method (Must use state.width/state.height)
+2. **Array Out of Bounds**: Check y < array.length && x < array[y].length before accessing array[y][x]
+3. **Division by Zero**: Check length > 0 or length !== 0 before calculating v/length
+4. **Infinite Loop**: while/for loops must have clear exit conditions or counter limits
+5. **Uninitialized Variables**: All state properties must be initialized in init
+6. **Input Handling Error**: Do not assume input.clicked exists, must detect isDown changes manually
+7. **DOM Access**: Strictly forbidden to use document, window, canvas, context global objects. Drawing must use the ctx parameter in draw method.
+8. **External Resources**: Strictly forbidden to load local or network images/audio (e.g., new Image, new Audio). All visual effects must be drawn using Context2D API (rect, arc, lineTo).
+9. **Private Loop**: Strictly forbidden to use requestAnimationFrame, setInterval, setTimeout to drive game loop. Must rely on the passed update method.
 
-=== 视觉规范 ===
+=== Visual Guidelines ===
 
-强制配色方案（霓虹赛博朋克风格）：
-- 墙壁/障碍物：青色 #00ffff
-- 危险/陷阱/敌人：黄色 #ffff00 或 品红 #ff00ff
-- 目标/奖励/出口：品红 #ff00ff 或 青色 #00ffff
-- 玩家：白色 #ffffff
-- 背景：深色 #0a0a0a 或 #000033
+Mandatory Color Scheme (Neon Cyberpunk Style):
+- Walls/Obstacles: Cyan #00ffff
+- Danger/Traps/Enemies: Yellow #ffff00 or Magenta #ff00ff
+- Goals/Rewards/Exits: Magenta #ff00ff or Cyan #00ffff
+- Player: White #ffffff
+- Background: Dark #0a0a0a or #000033
 
-绘制技巧：
-- 使用 ctx.shadowBlur 和 ctx.shadowColor 制造发光效果
-- 使用渐变色 createLinearGradient/createRadialGradient 增强视觉
-- 使用透明度 rgba() 制造深度感
+Drawing Techniques:
+- Use ctx.shadowBlur and ctx.shadowColor for glowing effects
+- Use gradients createLinearGradient/createRadialGradient for enhanced visuals
+- Use transparency rgba() for depth
 
-=== 边界检查规范 ===
-- **数组访问**: 访问 array[y][x] 前，必须检查 y 和 x 是否在合法范围内。
-- **数学计算**: 做除法前检查除数是否为0。计算向量长度归一化时要处理零向量情况。
-- **坐标限制**: 确保实体坐标限制在 Canvas 范围内 (clamp)。
+=== Boundary Check Standards ===
+- **Array Access**: Before accessing array[y][x], must check if y and x are within valid range.
+- **Math Calculations**: Check divisor is not 0 before division. Handle zero vector case when normalizing vector length.
+- **Coordinate Limiting**: Ensure entity coordinates are clamped within Canvas bounds (clamp).
 
-=== 输出格式 ===
+=== Output Format ===
 
-请严格按照以下格式输出（不要用 Markdown 包裹整个回复）：
+Please strictly output in the following format (Do not wrap the entire response in Markdown code blocks):
 
-TITLE: 游戏标题（中文，5-12字）
-DESCRIPTION: 简短描述游戏玩法和操作方式（中文，一句话，30字以内）
+TITLE: Game Title (5-12 words)
+DESCRIPTION: Short description of game play and controls (1 sentence, within 30 words)
 CODE:
 \`\`\`javascript
 "use strict";
 
-// 1. 定义游戏常量 (颜色, 速度, 配置等)
-// 建议使用 const CONSTANTS = { ... }
+// 1. Define Game Constants (Colors, Speed, Configuration, etc.)
+// Recommend using const CONSTANTS = { ... }
 
-// 2. 定义游戏逻辑类 (Game, Player, Enemy 等)
-// 建议使用 class 结构组织代码
+// 2. Define Game Logic Classes (Game, Player, Enemy, etc.)
+// Recommend using class structure
 
-// 3. 返回核心接口对象
+// 3. Return Core Interface Object
 return {
   init: (state, width, height) => {
-    // 保存宽高: state.width = width;
-    // 初始化状态: state.scene, state.score, state.game
+    // Save dimensions: state.width = width;
+    // Initialize state: state.scene, state.score, state.game
   },
   
   update: (state, input, deltaTime) => {
-    // 场景切换逻辑 (MENU -> PLAYING -> GAMEOVER)
-    // 游戏循环更新
+    // Scene switching logic (MENU -> PLAYING -> GAMEOVER)
+    // Game loop update
   },
   
   draw: (state, ctx, width, height) => {
-    // 绘制背景
-    // 根据场景绘制不同内容
+    // Draw background
+    // Draw content based on scene
   }
 };
 \`\`\`
 
-=== 自检清单（生成代码前自查）===
+=== Self-Check List (Pre-generation Check) ===
 
-在输出代码前，请确认：
-- [ ] init 方法中保存了 state.width 和 state.height
-- [ ] update 方法中使用 state.width 而非直接用 width
-- [ ] 实现了 MENU、PLAYING、GAMEOVER 三个场景
-- [ ] 屏幕上显示了操作提示文字
-- [ ] 所有数组访问前都检查了边界
-- [ ] 所有除法前都检查了除数不为零
-- [ ] 没有使用 eval、document、window、Image、Audio
-- [ ] 没有使用 setTimeout、setInterval、requestAnimationFrame
-- [ ] 使用了霓虹配色方案（青色/品红/黄色）
-- [ ] 代码使用 "use strict" 模式`;
+Before outputting code, please confirm:
+- [ ] Saved state.width and state.height in init method
+- [ ] Used state.width instead of direct width in update method
+- [ ] Implemented MENU, PLAYING, GAMEOVER three scenes
+- [ ] Displayed operation instructions text on screen
+- [ ] Checked boundaries for all array accesses
+- [ ] Checked divisor is not zero for all divisions
+- [ ] Did not use eval, document, window, Image, Audio
+- [ ] Did not use setTimeout, setInterval, requestAnimationFrame
+- [ ] Used Neon color scheme (Cyan/Magenta/Yellow)
+- [ ] Code uses "use strict" mode`;
 
         console.log('[ENGINEER] Calling AI for code generation...');
         const startTime = Date.now();
