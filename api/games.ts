@@ -12,10 +12,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         if (req.method === 'POST') {
-            const { id, title, description, setupCode, updateCode } = req.body;
+            const { id, title, description, code } = req.body;
 
             // Basic validation
-            if (!title || !setupCode || !updateCode) {
+            if (!title || !code) {
                 return res.status(400).json({ error: 'Missing fields' });
             }
 
@@ -36,8 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     id: id || undefined,
                     title,
                     description,
-                    setupCode,
-                    updateCode,
+                    code,
                     likes: 0
                 }
             });

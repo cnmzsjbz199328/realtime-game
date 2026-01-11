@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
-import { IGameGenerator, ICodeFixer, IGameValidator, AgentStatus, AgentLog, GameDefinition } from '../core/domain/types';
+import { IFixer, IGameValidator, AgentStatus, AgentLog, GameDefinition } from '../core/domain/types';
+import { FrontendGameGenerator } from '../infrastructure/ai/FrontendAIService';
 
 export const useAgentWorkflow = (
-    generator: IGameGenerator,
-    fixer: ICodeFixer,
+    generator: FrontendGameGenerator,
+    fixer: IFixer,
     validator: IGameValidator
 ) => {
     const [status, setStatus] = useState<AgentStatus>(AgentStatus.IDLE);
@@ -11,6 +12,7 @@ export const useAgentWorkflow = (
     const [game, setGame] = useState<GameDefinition | null>(null);
 
     const addLog = (agent: 'DIRECTOR' | 'ENGINEER' | 'QA', message: string) => {
+        console.log(`[${agent}] ${message}`);
         setLogs(prev => [...prev, {
             id: Math.random().toString(36).substr(2, 9),
             agent,
@@ -22,29 +24,29 @@ export const useAgentWorkflow = (
     const startWorkflow = async (topic: string) => {
         if (!topic.trim()) return;
 
+        console.log('[WORKFLOW] ========== Workflow Started ==========');
+        console.log('[WORKFLOW] Topic:', topic);
+
         setStatus(AgentStatus.DIRECTOR_THINKING);
         setLogs([]);
         setGame(null);
 
-        // 1. Director Phase
-        addLog('DIRECTOR', `Analyzing topic: "${topic}"...`);
-        addLog('DIRECTOR', 'Extracting core metaphors and gameplay mechanics...');
-
-        await new Promise(r => setTimeout(r, 1000));
-
-        addLog('DIRECTOR', 'GDD (Game Design Document) generated. Transmitting to Engineer.');
-        setStatus(AgentStatus.ENGINEER_CODING);
-
         try {
-            // 2. Engineer Phase
-            addLog('ENGINEER', 'Received GDD. Initializing coding environment...');
-            addLog('ENGINEER', 'Generating game logic, physics, and rendering pipeline...');
+            // Phase 1-3: Director + Engineer (runs on backend via API)
+            addLog('DIRECTOR', `Analyzing topic: "${topic}"...`);
+            addLog('DIRECTOR', 'Classifying game type and expanding design...');
+
+            setStatus(AgentStatus.ENGINEER_CODING);
+            addLog('ENGINEER', 'Received design from Director...');
+            addLog('ENGINEER', 'Generating game code...');
 
             let currentGameDef = await generator.generate(topic);
 
+            addLog('ENGINEER', `✓ Generated: ${currentGameDef.title}`);
             addLog('ENGINEER', 'Code compilation successful. Sending build to QA Sandbox...');
 
-            // 3. QA Phase
+            // Phase 4: QA Testing with Retry
+            console.log('[WORKFLOW] Phase 4: QA Testing');
             let qaPassed = false;
             let attempts = 0;
             const MAX_RETRIES = 2;
@@ -80,7 +82,7 @@ export const useAgentWorkflow = (
 
                         currentGameDef = await fixer.fix(currentGameDef, testResult.error || "Unknown Error");
 
-                        addLog('ENGINEER', 'Hotfix applied. Re-submitting for review...');
+                        addLog('ENGINEER', '✓ Hotfix applied. Re-submitting for review...');
                     } else {
                         addLog('QA', 'Critical Failure: Max retries exceeded. Aborting.');
                         throw new Error(`QA Check failed: ${testResult.error}`);
@@ -89,12 +91,17 @@ export const useAgentWorkflow = (
                 attempts++;
             }
 
+            // Phase 5: Deployment
             if (qaPassed) {
+                console.log('[WORKFLOW] Phase 5: Deployment');
                 setGame(currentGameDef);
                 setStatus(AgentStatus.DEPLOYED);
+                console.log('[WORKFLOW] ========== Workflow Complete ==========');
             }
 
         } catch (error: any) {
+            console.error('[WORKFLOW] ========== Workflow Failed ==========');
+            console.error('[WORKFLOW] Error:', error.message);
             addLog('ENGINEER', `Workflow Halted: ${error.message}`);
             setStatus(AgentStatus.FAILED);
         }
@@ -102,9 +109,6 @@ export const useAgentWorkflow = (
 
     const handleCrash = useCallback((error: string) => {
         addLog('QA', `Runtime Error Detected: ${error}`);
-        // We do NOT set status to FAILED here, because we want the user to see the error overlay
-        // on the game canvas (GameHarness handles the UI).
-        // If we set FAILED, it flips back to the terminal, confusing the user.
     }, []);
 
     return {

@@ -6,10 +6,17 @@ interface GameHarnessProps {
   onCrash: (error: string) => void;
 }
 
+interface GameInterface {
+  init: (state: any, width: number, height: number) => void;
+  update: (state: any, input: InputState, deltaTime: number) => void;
+  draw: (state: any, ctx: CanvasRenderingContext2D, width: number, height: number) => void;
+}
+
 export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const requestRef = useRef<number | null>(null);
   const stateRef = useRef<any>({});
+  const lastTimeRef = useRef<number>(0);
 
   // Input handling
   const inputRef = useRef<InputState>({ x: 0, y: 0, isDown: false, keys: {} });
@@ -18,6 +25,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
 
   // Setup Input Listeners
   useEffect(() => {
+    // ... (listeners code is fine, no changes needed here, so not including it to keep chunks small if possible, but replace_file_content replaces the whole block defined by Start/EndLine)
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvasRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
@@ -59,20 +67,26 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     // Reset State
     stateRef.current = {};
     setRuntimeError(null);
+    lastTimeRef.current = performance.now();
 
-    let setupFunc: Function;
-    let updateFunc: Function;
+    let gameInterface: GameInterface;
 
     try {
-      // Create functions from string (The Harness)
-      // We pass the dependencies as argument names, and the code string as body
+      // Create function from single code block
+      // The code MUST return { init, update, draw }
+      // We wrap it in a function body that returns the result of the code execution
       // eslint-disable-next-line no-new-func
-      setupFunc = new Function('ctx', 'canvas', 'state', gameDef.setupCode);
-      // eslint-disable-next-line no-new-func
-      updateFunc = new Function('ctx', 'canvas', 'state', 'input', gameDef.updateCode);
+      const createGame = new Function(gameDef.code);
+      const result = createGame();
 
-      // Run Setup
-      setupFunc(ctx, canvas, stateRef.current);
+      if (!result || typeof result.init !== 'function' || typeof result.update !== 'function' || typeof result.draw !== 'function') {
+        throw new Error("Generated code did not return valid game interface (modules missing: init, update, or draw)");
+      }
+
+      gameInterface = result as GameInterface;
+
+      // Run Init (Pass canvas dimensions)
+      gameInterface.init(stateRef.current, canvas.width, canvas.height);
 
     } catch (e: any) {
       const msg = `Compilation/Setup Error: ${e.message}`;
@@ -83,16 +97,25 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     }
 
     // Run Loop
-    const animate = () => {
+    const animate = (time: number) => {
       try {
-        updateFunc(ctx, canvas, stateRef.current, inputRef.current);
+        const deltaTime = (time - lastTimeRef.current) / 1000;
+        lastTimeRef.current = time;
+
+        const dt = Math.min(deltaTime, 0.1); // Cap dt to prevent huge jumps
+
+        // Update
+        gameInterface.update(stateRef.current, inputRef.current, dt);
+
+        // Draw
+        gameInterface.draw(stateRef.current, ctx, canvas.width, canvas.height);
+
         requestRef.current = requestAnimationFrame(animate);
       } catch (e: any) {
         const msg = `Runtime Error: ${e.message}`;
         console.error(msg);
         setRuntimeError(msg);
         onCrash(msg);
-        // Stop loop on error
         if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
       }
     };
@@ -106,6 +129,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
 
   return (
     <div className="relative w-full h-full flex flex-col items-center justify-center bg-black/50 rounded-xl overflow-hidden border border-zinc-700">
+
       {runtimeError ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/90 text-red-500 p-8 text-center font-mono z-20">
           <div>

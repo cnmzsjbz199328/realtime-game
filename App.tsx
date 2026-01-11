@@ -7,25 +7,28 @@ import { TerminalLogs } from './presentation/components/features/TerminalLogs';
 import { FlipContainer } from './presentation/components/layout/FlipContainer';
 import { useAgentWorkflow } from './application/useAgentWorkflow';
 import { useGameCollection } from './application/useGameCollection';
-import { RemoteAIService } from './infrastructure/ai/RemoteAIService';
+import { FrontendGameGenerator, FrontendFixer } from './infrastructure/ai/FrontendAIService';
 import { HeadlessBrowserValidator } from './infrastructure/qa/HeadlessBrowserValidator';
 import { DirectInputSource } from './infrastructure/input/DirectInputSource';
 import { PostgresGameRepository } from './infrastructure/persistence/PostgresGameRepository';
 import { AgentStatus, GameDefinition } from './core/domain/types';
 
-// Composition Root: Instantiate Services
-const aiService = new RemoteAIService();
+// Composition Root: Instantiate Frontend Services
+console.log('[APP] Initializing frontend services...');
+const generator = new FrontendGameGenerator();
+const fixer = new FrontendFixer();
 const validator = new HeadlessBrowserValidator();
 const directInput = new DirectInputSource();
 const gameRepo = new PostgresGameRepository();
+console.log('[APP] Frontend services initialized (backend AI logic via API)');
 
 function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'leaderboard'>('home');
 
   // Inject Services into Application Logic
   const { status, logs, game, setGame, setStatus, startWorkflow, handleCrash } = useAgentWorkflow(
-    aiService,
-    aiService,
+    generator,
+    fixer,
     validator
   );
 

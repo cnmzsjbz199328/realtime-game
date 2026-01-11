@@ -10,8 +10,7 @@ export enum AgentStatus {
 export interface GameDefinition {
     title: string;
     description: string;
-    setupCode: string; // Javascript code string
-    updateCode: string; // Javascript code string
+    code: string; // Single block containing setup, update, and classes
 }
 
 export interface SavedGame extends GameDefinition {
@@ -41,12 +40,35 @@ export interface IInputSource {
     getValue(rawInput?: string): Promise<string>;
 }
 
-// Port: Who does the work
-export interface IGameGenerator {
-    generate(topic: string): Promise<GameDefinition>;
+// Port: Two-stage game generation
+
+// Director: Classifies topic and expands design
+export interface IDirector {
+    classify(topic: string): Promise<DirectorResult>;
 }
 
-export interface ICodeFixer {
+export interface DirectorResult {
+    skeletonId: string;
+    expandedDesign: string;
+}
+
+// Engineer: Generates code with skeleton context
+export interface IEngineer {
+    generate(
+        skeletonContext: SkeletonContext,
+        expandedDesign: string
+    ): Promise<GameDefinition>;
+}
+
+export interface SkeletonContext {
+    id: string;
+    name: string;
+    interfaceContext: string;
+    systemPromptAddon: string;
+}
+
+// Fixer: Repairs broken code
+export interface IFixer {
     fix(game: GameDefinition, error: string): Promise<GameDefinition>;
 }
 

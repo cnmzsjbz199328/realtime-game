@@ -13,6 +13,7 @@ interface GameStageProps {
 export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onSave, onBack }) => {
     const [saved, setSaved] = useState(false);
     const [isInfoExpanded, setIsInfoExpanded] = useState(true);
+    const [restartKey, setRestartKey] = useState(0);
 
     useEffect(() => {
         if (status === AgentStatus.DEPLOYED) {
@@ -32,13 +33,17 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
         }
     };
 
+    const handleRestart = () => {
+        setRestartKey(prev => prev + 1);
+    };
+
     return (
         <section className={`w-full h-full transition-all duration-700 ${status === AgentStatus.DEPLOYED ? 'opacity-100 translate-y-0' : 'opacity-40 translate-y-4 grayscale'}`}>
             {status === AgentStatus.DEPLOYED && game ? (
                 <div className="w-full h-full relative group overflow-hidden bg-black rounded-xl border border-brand-cyan/20">
 
                     {/* GAME CANVAS LAYER */}
-                    <GameHarness gameDef={game} onCrash={onCrash} />
+                    <GameHarness key={`${game.title}-${restartKey}`} gameDef={game} onCrash={onCrash} />
 
                     {/* TOP RIGHT ACTIONS (Overlay) */}
                     <div className="absolute top-6 right-6 flex items-center gap-3 z-50 transition-opacity duration-300 opacity-60 hover:opacity-100">
@@ -48,6 +53,14 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
                             title="Back to Terminal"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        </button>
+
+                        <button
+                            onClick={handleRestart}
+                            className="w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-sm text-gray-400 hover:text-white transition-all border border-white/10"
+                            title="Restart Game"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                         </button>
 
                         <button
