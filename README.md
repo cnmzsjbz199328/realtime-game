@@ -96,7 +96,7 @@ GenGame Studio 是一个利用大语言模型（LLM）实时生成高质量 HTML
 
 ### 📂 项目结构
 
-- `/api`: 公开的云函数入口（针对 Vercel 免费版进行了 12 函数限额优化）。
+- `/api`: 公开的云函数入口）。
 - `/server`: 后端核心逻辑（Director, Engineer, Fixer 服务及游戏模板）。
 - `/core`: 领域模型定义与共享工具类。
 - `/application`: 应用层逻辑与状态管理 (React Hooks)。
