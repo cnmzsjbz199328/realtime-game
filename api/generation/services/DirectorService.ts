@@ -35,7 +35,8 @@ Output Format (Return JSON only, no other text):
 }
 
 Important Notes:
-- If uncertain, select 'universal_minimal'.
+- If uncertain, or if the user requests a game type NOT strictly listed (e.g., Tetris, Solitaire, Poker, or generic logic), you MUST select 'universal_minimal'.
+- Do NOT force-fit unsupported game types into skeletons (e.g., do NOT put Tetris into 'click_eliminate').
 - expandedDesign must be imaginative and inject 'soul' into the game.`;
 
         console.log('[DIRECTOR] Calling AI for classification...');

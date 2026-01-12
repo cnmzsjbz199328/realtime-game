@@ -15,6 +15,7 @@ export const InputSection: React.FC<InputSectionProps> = ({ inputSource, onGener
         try {
             const topic = await inputSource.getValue(inputValue);
             onGenerate(topic);
+            setInputValue('');
         } catch (e) {
             console.error("Input Error", e);
         }

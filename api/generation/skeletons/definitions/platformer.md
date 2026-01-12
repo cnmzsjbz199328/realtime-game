@@ -54,8 +54,10 @@ description: Side-scrolling platformer with gravity, jumping, and level design.
 你正在开发一个平台跳跃游戏。参考上述设计指南，自由实现游戏逻辑。
 
 **关键要求**：
+**关键要求**：
+- **物理引擎算法**: 必须实现基于速度和加速度的物理系统 (`velocity.y += gravity`, `position += velocity`)。严禁直接修改坐标进行无惯性移动。
+- **碰撞检测算法**: 必须使用 AABB (Axis-Aligned Bounding Box) 算法检测玩家与平台的重叠。处理“落地”逻辑时，必须修正玩家位置使其位于平台上方 (`player.bottom = platform.top`)。
 - 实现重力和跳跃物理
 - 平台碰撞检测（特别是从上方着地）
 - 关卡设计（至少3个难度递增的关卡）
-- 使用 `entity.tag` 区分类型
 - 所有实体继承自 `GameObject`

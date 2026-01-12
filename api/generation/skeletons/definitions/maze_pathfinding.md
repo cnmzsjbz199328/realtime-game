@@ -55,6 +55,7 @@ description: Navigate through mazes with walls, enemies, and collectibles.
 你正在开发一个迷宫游戏。参考上述设计指南，自由实现游戏逻辑。
 
 **关键要求**：
+- **迷宫生成算法**: 严禁使用简单的随机噪点 (Random Noise)。必须使用 DFS (深度优先搜索)、Prim 算法或递归回溯算法生成确保连通的迷宫。保证起点到终点至少有一条路径。
 - 实现迷宫数据结构（二维数组或实体列表）
 - 玩家与墙壁的碰撞检测
 - 敌人AI（巡逻或追击）

@@ -25,6 +25,7 @@ Fix Guidelines:
 4. Maintain core game logic.
 5. ⚠️ CRITICAL: width and height are ONLY available in init and draw. In update(state, input, deltaTime), you **MUST NOT** use width/height directly; use state.width/state.height (saved in init).
 6. ⚠️ Check array boundaries (safe access) before accessing.
+7. ⚠️ INPUT HANDLING: \`input\` is a pure data object. It has NO methods. Use \`input.keys['KeyW']\` or \`input.isDown\` (boolean). DO NOT use \`input.isDown()\`.
 
 === Output Format (Strict Text Format) ===
 Strictly output in the following format, do not wrap response in markdown code blocks:

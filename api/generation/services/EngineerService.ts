@@ -24,6 +24,12 @@ You are a professional game engineer. Based on the following game design, genera
 === Game Design ===
 ${gameDesignContext}
 
+=== ALGORITHM QUALITY STANDARDS ===
+You are a Senior Game Engineer.
+1. **NO Lazy Implementations**: Do NOT use naive or random implementations for complex logic (e.g., random noise for level generation). YOU MUST implement standard, robust algorithms appropriate for the specific skeleton definition.
+2. **Production Ready**: Your code must be robust, handle edge cases, and provide a polished experience.
+3. **Logic Integrity**: Ensure the game logic actually works (e.g., proper collision detection, valid scoring, win/loss conditions).
+
 === Code Structure Guidelines ===
 
 ⚠️ CRITICAL RULE: Scope of width and height parameters
@@ -36,7 +42,11 @@ ${gameDesignContext}
    - Must save width and height to state (state.width = width) for use in update.
    - Initialize scenes (MENU), score, game objects, etc.
 2. **update(state, input, deltaTime)**:
-   - Handle input (input.isDown) and game logic.
+   - **Input Handling**: The \`input\` argument is a **pure data object**, NOT a class.
+     - Check keys: \`input.keys['KeyW']\` or \`input.keys['ArrowUp']\`. Use standard KeyboardEvent.code values (NOT 'w').
+     - Check mouse: \`input.isDown\` (boolean), \`input.x\`, \`input.y\`.
+     - ❌ ERROR: Do NOT access \`input\` as a function (e.g. \`input.isDown()\`).
+   - Handle game logic and state transitions.
    - Strictly forbidden to use global width/height, must use state.width.
 3. **draw(state, ctx, width, height)**:
    - Use ctx to draw each frame.
@@ -55,7 +65,7 @@ state object recommended to include:
 ✅ Must Implement:
 1. Three game scenes: Start Menu (MENU), Gameplay (PLAYING), Game Over (GAMEOVER)
 2. Clear operation instructions (Must be displayed on screen, e.g., "Press WASD to move")
-3. Click event detection (By monitoring isDown state changes)
+3. Click event detection (By monitoring isDown state changes: \`pressed = input.isDown && !state.wasDown\`)
 4. Save Canvas dimensions to state (For use in update)
 
 ❌ Errors to Avoid:
@@ -64,7 +74,7 @@ state object recommended to include:
 3. **Division by Zero**: Check length > 0 or length !== 0 before calculating v/length
 4. **Infinite Loop**: while/for loops must have clear exit conditions or counter limits
 5. **Uninitialized Variables**: All state properties must be initialized in init
-6. **Input Handling Error**: Do not assume input.clicked exists, must detect isDown changes manually
+6. **Input Handling Error**: \`input\` has NO methods. Do not use \`input.isDown()\`. Use \`input.isDown\` property.
 7. **DOM Access**: Strictly forbidden to use document, window, canvas, context global objects. Drawing must use the ctx parameter in draw method.
 8. **External Resources**: Strictly forbidden to load local or network images/audio (e.g., new Image, new Audio). All visual effects must be drawn using Context2D API (rect, arc, lineTo).
 9. **Private Loop**: Strictly forbidden to use requestAnimationFrame, setInterval, setTimeout to drive game loop. Must rely on the passed update method.

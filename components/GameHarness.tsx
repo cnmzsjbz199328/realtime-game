@@ -34,8 +34,8 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     };
     const handleMouseDown = () => { inputRef.current.isDown = true; };
     const handleMouseUp = () => { inputRef.current.isDown = false; };
-    const handleKeyDown = (e: KeyboardEvent) => { inputRef.current.keys[e.key] = true; };
-    const handleKeyUp = (e: KeyboardEvent) => { inputRef.current.keys[e.key] = false; };
+    const handleKeyDown = (e: KeyboardEvent) => { inputRef.current.keys[e.code] = true; };
+    const handleKeyUp = (e: KeyboardEvent) => { inputRef.current.keys[e.code] = false; };
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mousedown', handleMouseDown);

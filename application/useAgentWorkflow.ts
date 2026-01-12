@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { IFixer, IGameValidator, AgentStatus, AgentLog, GameDefinition } from '../core/domain/types';
 import { FrontendGameGenerator } from '../infrastructure/ai/FrontendAIService';
 
@@ -21,9 +21,17 @@ export const useAgentWorkflow = (
         }]);
     };
 
+    // Concurrency Guard
+    const processingRef = useRef(false);
+
     const startWorkflow = async (topic: string) => {
         if (!topic.trim()) return;
+        if (processingRef.current) {
+            console.warn('[WORKFLOW] Attempted to start workflow while already running. Ignored.');
+            return;
+        }
 
+        processingRef.current = true;
         console.log('[WORKFLOW] ========== Workflow Started ==========');
         console.log('[WORKFLOW] Topic:', topic);
 
@@ -104,6 +112,8 @@ export const useAgentWorkflow = (
             console.error('[WORKFLOW] Error:', error.message);
             addLog('ENGINEER', `Workflow Halted: ${error.message}`);
             setStatus(AgentStatus.FAILED);
+        } finally {
+            processingRef.current = false;
         }
     };
 

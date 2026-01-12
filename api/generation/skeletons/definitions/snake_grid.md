@@ -59,6 +59,8 @@ description: Classic snake game with grid-based movement and food collection.
 你正在开发一个贪吃蛇游戏。参考上述设计指南，用自然的游戏逻辑实现。
 
 **核心要求**：
+- **数据结构算法**: 必须使用队列 (Queue) 或数组的 `unshift/pop` 操作来管理蛇身移动。严禁每一帧都重绘整个身体位置。
+- **网格坐标系统**: 所有逻辑必须基于网格坐标 (Grid Coordinates) 进行计算 (x=1, y=2)，只在绘制时转换为像素坐标。
 - 网格系统和基于网格的移动
 - 方向控制（防止180度转向）
 - 边界和自身碰撞检测

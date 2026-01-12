@@ -63,6 +63,9 @@ description: Vertical or horizontal scrolling shooter with enemies, power-ups, a
 你正在开发一个射击游戏。参考上述设计指南，自由实现游戏逻辑。
 
 **关键要求**：
+**关键要求**：
+- **对象管理算法**: 必须实现清理机制 (Garbage Collection)，每一帧移除飞出屏幕外的子弹和敌人，防止内存泄漏和性能下降。
+- **物理运动算法**: 这里必须基于速度向量 (Velocity Vector) 控制子弹和敌人的移动，禁止简单的坐标瞬移。
 - 实现玩家移动和射击
 - 敌人生成和移动模式
 - 子弹碰撞检测
