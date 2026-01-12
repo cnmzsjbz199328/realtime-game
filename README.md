@@ -18,3 +18,8 @@ View your app in AI Studio: https://ai.studio/apps/drive/1r5hdcXvJWK6-lJfo6Luo8h
 
 2. Run the app:
    `npm run dev`
+
+
+## Test Auto Deploy
+
+Testing webhook trigger for automatic deployment.
