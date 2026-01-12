@@ -79,6 +79,16 @@ function App() {
                       const saved = await saveGame(g);
                       setGame(saved);
                     }}
+                    onUpdateCode={(code) => {
+                      if (game) {
+                        // "Fork" behavior:
+                        // When code is edited, we strip the 'id' (if any) so that the next Save
+                        // creates a NEW record instead of updating/liking the old one.
+                        // We cast to any to safely destructure potential extra properties like 'id'.
+                        const { id, likes, timestamp, ...rest } = game as any;
+                        setGame({ ...rest, code });
+                      }
+                    }}
                     onBack={handleBackToTerminal}
                   />
                 </div>
