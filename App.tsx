@@ -21,7 +21,7 @@ const VERSION_INFO = {
 };
 
 // Composition Root: Instantiate Frontend Services
-console.log(`[APP] %cInitializing GEN-GAME UI v${VERSION_INFO.buildDate}`, "color: #00ffff; font-weight: bold;");
+console.log(`[APP] % cInitializing GEN-GAME UI v${VERSION_INFO.buildDate}`, "color: #00ffff; font-weight: bold;");
 console.log(`[APP] %cCommit: ${VERSION_INFO.commitRef}`, "color: #00ffff;");
 const generator = new FrontendGameGenerator();
 const fixer = new FrontendFixer();
