@@ -1,4 +1,4 @@
-import { IFixer, GameDefinition } from '../../../core/domain/types.js';
+import { IFixer, GameDefinition } from '../../core/domain/types.js';
 import { callAI } from './ai-client.js';
 
 export class FixerService implements IFixer {

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { FixerService } from './services/FixerService.js';
+import { FixerService } from '../../server/services/FixerService.js';
 import type { GameDefinition } from '../../core/domain/types';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

@@ -3,7 +3,7 @@
  * Maps Skeleton IDs to their Markdown filenames.
  */
 import { loadSkeleton, SkeletonDefinition } from './loader.js';
-import type { SkeletonContext } from '../../../core/domain/types.js';
+import type { SkeletonContext } from '../../core/domain/types.js';
 
 const SKELETON_FILES: Record<string, string> = {
     'universal_minimal': 'universal_minimal.md',

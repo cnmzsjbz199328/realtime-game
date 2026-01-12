@@ -17,7 +17,7 @@ export interface SkeletonDefinition {
 
 export function loadSkeleton(filename: string): SkeletonDefinition | null {
     try {
-        const filePath = path.join(process.cwd(), 'api/generation/skeletons/definitions', filename);
+        const filePath = path.join(process.cwd(), 'server/skeletons/definitions', filename);
         const content = fs.readFileSync(filePath, 'utf-8');
 
         // 1. Parse Frontmatter (handle both \n and \r\n)

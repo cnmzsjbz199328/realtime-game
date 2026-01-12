@@ -1,4 +1,4 @@
-import { IEngineer, GameDefinition, SkeletonContext } from '../../../core/domain/types.js';
+import { IEngineer, GameDefinition, SkeletonContext } from '../../core/domain/types.js';
 import { callAI } from './ai-client.js';
 
 export class EngineerService implements IEngineer {

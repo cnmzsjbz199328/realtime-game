@@ -1,4 +1,4 @@
-import { IDirector, DirectorResult } from '../../../core/domain/types.js';
+import { IDirector, DirectorResult } from '../../core/domain/types.js';
 import { getSkeletonDirectory } from '../skeletons/directory.js';
 import { callAI } from './ai-client.js';
 

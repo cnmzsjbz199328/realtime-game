@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { DirectorService } from './services/DirectorService.js';
-import { EngineerService } from './services/EngineerService.js';
-import { getSkeletonContext } from './skeletons/registry.js';
+import { DirectorService } from '../../server/services/DirectorService.js';
+import { EngineerService } from '../../server/services/EngineerService.js';
+import { getSkeletonContext } from '../../server/skeletons/registry.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
