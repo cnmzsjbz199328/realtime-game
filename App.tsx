@@ -13,8 +13,16 @@ import { DirectInputSource } from './infrastructure/input/DirectInputSource';
 import { PostgresGameRepository } from './infrastructure/persistence/PostgresGameRepository';
 import { AgentStatus, GameDefinition } from './core/domain/types';
 
+// Deployment Version Info (to verify deployment status)
+const VERSION_INFO = {
+  version: "1.2.0-source-viewer",
+  buildDate: "2026-01-13 00:27 (New Architecture)",
+  commitRef: "220cb13"
+};
+
 // Composition Root: Instantiate Frontend Services
-console.log('[APP] Initializing frontend services...');
+console.log(`[APP] %cInitializing GEN-GAME UI v${VERSION_INFO.buildDate}`, "color: #00ffff; font-weight: bold;");
+console.log(`[APP] %cCommit: ${VERSION_INFO.commitRef}`, "color: #00ffff;");
 const generator = new FrontendGameGenerator();
 const fixer = new FrontendFixer();
 const validator = new HeadlessBrowserValidator();
