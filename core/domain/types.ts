@@ -72,6 +72,11 @@ export interface IFixer {
     fix(game: GameDefinition, error: string): Promise<GameDefinition>;
 }
 
+// Remix: Modifies existing code based on user instructions
+export interface IRemix {
+    remix(game: GameDefinition, instruction: string): Promise<GameDefinition>;
+}
+
 // Port: Who validates the work
 export interface IGameValidator {
     validate(game: GameDefinition): Promise<{ passed: boolean; error?: string }>;
