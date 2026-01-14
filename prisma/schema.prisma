@@ -15,3 +15,45 @@ model SavedGame {
   likes       Int      @default(0)
   createdAt   DateTime @default(now())
 }
+
+// --- Evolution Layer Models ---
+
+model SystemPrompt {
+  id          String   @id @default(uuid())
+  role        String   // 'ENGINEER', 'DIRECTOR', 'FIXER', 'REMIXER'
+  content     String   @db.Text
+  version     Int      @default(1)
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Skeleton {
+  id          String   @id // e.g., 'breakout_paddle'
+  name        String
+  description String   @db.Text // 存储完整的游戏设计指南和 System Prompt
+  version     Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model IssueRecord {
+  id          String   @id @default(uuid())
+  gameId      String
+  errorType   String   // 'SYNTAX', 'RUNTIME', 'LOGIC'
+  errorMsg    String   @db.Text
+  fixPrompt   String?  @db.Text
+  skeletonId  String?
+  status      String   @default("PENDING") // 'PENDING', 'PROCESSED'
+  createdAt   DateTime @default(now())
+}
+
+model OptimizationRecord {
+  id          String   @id @default(uuid())
+  gameId      String
+  userRequest String   @db.Text
+  diff        String?  @db.Text
+  skeletonId  String?
+  status      String   @default("PENDING") // 'PENDING', 'PROCESSED'
+  createdAt   DateTime @default(now())
+}

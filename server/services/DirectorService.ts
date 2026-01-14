@@ -1,49 +1,63 @@
 import { IDirector, DirectorResult } from '../../core/domain/types.js';
 import { getSkeletonDirectory } from '../skeletons/directory.js';
 import { callAI } from './ai-client.js';
+import { prisma } from '../lib/prisma.js';
 
 export class DirectorService implements IDirector {
     async classify(topic: string): Promise<DirectorResult> {
         console.log('[DIRECTOR] ========== Classification Started ==========');
         console.log('[DIRECTOR] Topic:', topic);
 
-        const skeletonDirectory = getSkeletonDirectory();
+        // Load skeletons for directory
+        let skeletonDirectory = '';
+        try {
+            const dbSkeletons = await prisma.skeleton.findMany({
+                select: { id: true },
+                orderBy: { id: 'asc' }
+            });
+            if (dbSkeletons.length > 0) {
+                skeletonDirectory = dbSkeletons.map((s, idx) => `${idx + 1}. ${s.id}`).join('\n');
+                console.log(`[DIRECTOR] Built dynamic directory with ${dbSkeletons.length} skeletons`);
+            } else {
+                skeletonDirectory = getSkeletonDirectory();
+            }
+        } catch (dbError) {
+            console.warn('[DIRECTOR] DB skeleton fetch failed, using static directory', dbError);
+            skeletonDirectory = getSkeletonDirectory();
+        }
+
         console.log('[DIRECTOR] Loaded skeleton directory with', skeletonDirectory.split('\n').length, 'types');
 
-        const prompt = `You are a Game Design Director. Your task is to analyze user requirements, select the most suitable game skeleton, and expand it into a detailed game design description.
+        // Phase 2: Dynamic Prompts - Load from DB
+        let systemPrompt = '';
+        try {
+            const dbPrompt = await prisma.systemPrompt.findFirst({
+                where: { role: 'DIRECTOR', isActive: true },
+                orderBy: { version: 'desc' }
+            });
+            if (dbPrompt) {
+                systemPrompt = dbPrompt.content;
+                console.log(`[DIRECTOR] Using dynamic system prompt (v${dbPrompt.version})`);
+            }
+        } catch (dbError) {
+            console.warn('[DIRECTOR] DB fetch failed, falling back to minimal prompt', dbError);
+        }
 
-Available Game Skeletons:
-${skeletonDirectory}
-
-User Requirements: "${topic}"
-
-Tasks:
-1. Analyze user requirements and understand core intent.
-2. Select the most suitable skeleton ID from the list above.
-3. Expand user requirements into a **Story and Theme** focused game design.
-
-When expanding the design, focus on:
-- **World & Story**: Who is the player? Origin of enemies? Mission goal?
-- **Visual Theme & Atmosphere**: Combine with mandatory Neon colors, describe the setting (e.g., "Cyber Jungle", "Digital Void").
-- **Roles & Entities**: Give story meaning to abstract shapes (e.g., "Player is a rebel fighter, enemies are imperial drones").
-- **Progression Concept**: What does difficulty increase mean in the story context?
-
-Output Format (Return JSON only, no other text):
-{
-  "skeletonId": "Selected Skeleton ID",
-  "expandedDesign": "Detailed game design description (Focus on story and setting, at least 100 words)"
-}
-
-Important Notes:
-- If uncertain, or if the user requests a game type NOT strictly listed (e.g., Tetris, Solitaire, Poker, or generic logic), you MUST select 'universal_minimal'.
-- Do NOT force-fit unsupported game types into skeletons (e.g., do NOT put Tetris into 'click_eliminate').
-- expandedDesign must be imaginative and inject 'soul' into the game.`;
+        const compositePrompt = systemPrompt
+            ? `${systemPrompt}\n\nAvailable Skeletons:\n${skeletonDirectory}\n\nUser Input: "${topic}"`
+            : `Classify topic "${topic}" into one of these skeletons: ${skeletonDirectory}. Return JSON: { "skeletonId": "id", "expandedDesign": "description" }`;
 
         console.log('[DIRECTOR] Calling AI for classification...');
         const startTime = Date.now();
 
         try {
-            const contentRaw = await callAI([{ role: 'user', content: prompt }]);
+            const contentRaw = await callAI([
+                {
+                    role: 'system',
+                    content: 'You are a Game Design Director. You MUST return ONLY a JSON object with "skeletonId" and "expandedDesign" keys. NO other text.'
+                },
+                { role: 'user', content: compositePrompt }
+            ]);
             const elapsed = Date.now() - startTime;
             console.log('[DIRECTOR] AI response received in', elapsed, 'ms');
 
@@ -60,10 +74,6 @@ Important Notes:
             // Validate result
             if (!result.skeletonId || !result.expandedDesign) {
                 throw new Error('Invalid classification result: missing required fields');
-            }
-
-            if (result.expandedDesign.length < 50) {
-                console.warn('[DIRECTOR] Warning: Expanded design is too short');
             }
 
             console.log('[DIRECTOR] Selected skeleton:', result.skeletonId);

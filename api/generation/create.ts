@@ -29,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         // Phase 2: Load Skeleton Context
         console.log('[API/CREATE] Phase 2: Loading Skeleton Context');
-        const skeletonContext = getSkeletonContext(skeletonId);
+        const skeletonContext = await getSkeletonContext(skeletonId);
 
         if (!skeletonContext) {
             throw new Error(`Skeleton not found: ${skeletonId}`);

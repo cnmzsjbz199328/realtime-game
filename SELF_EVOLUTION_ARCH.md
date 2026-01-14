@@ -109,31 +109,28 @@ model OptimizationRecord {
 
 ## 4. Implementation Workflow (实施流程)
 
-### Phase 1: Feedback Collection (当前可见的任务)
+### Phase 1: Feedback Collection (In Progress)
 目标：建立数据收集渠道，让所有错误和用户需求落地到数据库。
 
-1.  **Backend**: `FixerService` 在修复成功后，不仅返回代码，还要向生成的 `IssueRecord` 表插入一条记录：“我修复了一个 `deltaTime` 问题，骨架是 `Action`”。
-2.  **Frontend**: 在 "Source" 页面增加 **"Remix w/ AI"** 按钮。
-    *   用户点击输入：“这游戏太难了，加三条命”。
-    *   调用新接口 `/api/generation/remix`。
-    *   该接口调用 AI 修改代码，并将用户的请求 + 修改前后的对比 存入 `OptimizationRecord`。
+1.  **Frontend (DONE)**: 在 "Source" 页面增加了 **"Remix w/ AI"** 按钮与交互界面。
+2.  **Backend API (DONE)**: 实现了 `/api/generation/remix` 接口，支持基于现有代码的增量修改。
+3.  **Logging (Pending)**: 需要在 `FixerService` 和 `RemixService` 中添加代码，将修复记录和优化请求正式写入 `IssueRecord` 和 `OptimizationRecord` 数据表。
 
 ### Phase 2: Dynamic Prompts (架构重构)
 目标：`EngineerService` 不再读取本地 String，而是读取数据库。
 
 1.  在数据库初始化（Seed）默认的 Prompt。
-2.  修改 `EngineerService.ts`，在 `generate` 之前先 `db.systemPrompt.findFirst({ where: { role: 'ENGINEER', isActive: true } })`。
-3.  Skeleton 同理，`registry.ts` 改为从数据库缓存中读取。
+2.  修改 `EngineerService.ts`，在 `generate` 之前先从数据库读取 `isActive` 的 System Prompt。
+3.  Skeleton 同理，`registry.ts` 改为从数据库读取。
 
 ### Phase 3: The Evolution Agent (核心大脑)
 目标：自动化优化。
 
 1.  创建一个定时任务 (Cron Job) 或触发器。
 2.  **逻辑**：
-    *   检查 `IssueRecord`，如果 `skeletonId='platformer'` 的记录中有 20 条包含了 "fell through floor" (穿模)。
-    *   启动 `EvolutionAgent`。
-    *   **Prompt**: "Here are 20 bug reports about physics collisions. Here is the current Platformer Skeleton Prompt. Rewrite the prompt to prevent this pattern."
-    *   **Action**: Agent 生成新的 Prompt，存入 `Skeleton` 表，版本号 +1。
+    *   检查反馈记录，当某个骨架的错误率或特定类别的优化请求（如“手感太轻”）超过阈值。
+    *   启动 `EvolutionAgent` 分析模式，生成新的 Prompt。
+    *   **Action**: Agent 生成新版 Prompt，自动更新数据库资产。
 
 ---
 
@@ -146,6 +143,6 @@ model OptimizationRecord {
 
 ## 6. Next Immediate Steps (下一步行动)
 
-1.  **Frontend**: 在代码预览页添加 Remix 输入框。
-2.  **Backend API**: 实现 `/api/generation/remix` 接口，这是收集“用户想要什么”的最佳途径。
-3.  **Database**: 迁移 Prisma Schema，增加上述反馈表。
+1.  **Database Migrate**: 迁移 Prisma Schema，正式增加 `SystemPrompt`、`IssueRecord` 和 `OptimizationRecord` 表。
+2.  **Data Persistence**: 在 `api/generation/remix.ts` 和 `api/generation/fix.ts` 中实现数据落库逻辑。
+3.  **Author Sign-off**: 完善作者签名系统与数据记录的关联。

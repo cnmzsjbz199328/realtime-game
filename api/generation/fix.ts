@@ -23,6 +23,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const fixedGame = await fixer.fix(game as GameDefinition, error);
 
         console.log('[API/FIX] Fixed:', fixedGame.title);
+
+        // Phase 1 Feedback Logging: Record the failure and fix attempt
+        try {
+            const { prisma } = await import('../../server/lib/prisma.js');
+            await prisma.issueRecord.create({
+                data: {
+                    gameId: (game as any).id || 'new_gen',
+                    errorType: 'RUNTIME',
+                    errorMsg: error,
+                    fixPrompt: 'AI Automatic Fix',
+                    skeletonId: (game as any).skeletonId || 'unknown',
+                    status: 'PENDING'
+                }
+            });
+            console.log('[API/FIX] Issue record logged to DB');
+        } catch (dbError) {
+            console.warn('[API/FIX] Failed to log failure feedback:', dbError);
+        }
+
         console.log('[API/FIX] ========== Fix Complete ==========');
 
         return res.status(200).json({

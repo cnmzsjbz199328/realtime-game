@@ -92,9 +92,11 @@ export class FrontendGameGenerator {
             throw new Error(data.error || 'Generation failed');
         }
 
-        console.log('[FRONTEND/GENERATOR] Generated:', data.game.title);
-        console.log('[FRONTEND/GENERATOR] Skeleton:', data.metadata.skeletonName);
+        const game = data.game;
+        if (data.metadata) {
+            (game as any).skeletonId = data.metadata.skeletonId;
+        }
 
-        return data.game;
+        return game;
     }
 }

@@ -1,63 +1,48 @@
 /**
  * Skeleton Registry
- * Maps Skeleton IDs to their Markdown filenames.
+ * Managed via Database. Decoupled from filesystem.
  */
-import { loadSkeleton, SkeletonDefinition } from './loader.js';
+import { prisma } from '../lib/prisma.js';
 import type { SkeletonContext } from '../../core/domain/types.js';
+import { ENGINE_INTERFACE } from './engine.js';
 
-const SKELETON_FILES: Record<string, string> = {
-    'universal_minimal': 'universal_minimal.md',
-    'tower_defense': 'tower_defense.md',
-    'gravity_platformer': 'platformer.md',
-    'scrolling_shooter': 'scrolling_shooter.md',
-    'maze_pathfinding': 'maze_pathfinding.md',
-    'match3': 'match3.md',
-    // Following skeletons will be converted to design-guide format
-    'universal_collection': 'collection.md',
-    'survival_shooter': 'survival_shooter.md',
-    'snake_grid': 'snake_grid.md',
-    'turnbased_grid': 'turnbased_grid.md',
-    'breakout_paddle': 'breakout_paddle.md',
-    'dodge_falling': 'dodge_falling.md',
-    'endless_runner': 'endless_runner.md',
-    'click_eliminate': 'click_eliminate.md',
-    'impulse_physics': 'impulse_physics.md',
-    'bullet_hell': 'bullet_hell.md',
-};
+/**
+ * For Engineer: Get skeleton context with interface and prompts directly from DB.
+ * It parses the Markdown 'description' field to extract specific sections.
+ */
+export async function getSkeletonContext(id: string): Promise<SkeletonContext | null> {
+    console.log('[REGISTRY] Loading dynamic skeleton from DB:', id);
 
-export const AVAILABLE_SKELETONS = Object.keys(SKELETON_FILES);
+    try {
+        const dbSkel = await prisma.skeleton.findUnique({ where: { id } });
+        if (!dbSkel) {
+            console.warn(`[REGISTRY] Skeleton not found in DB: ${id}`);
+            return null;
+        }
 
-export function getSkeleton(id: string): SkeletonDefinition | null {
-    const filename = SKELETON_FILES[id];
-    if (!filename) {
-        console.warn(`[REGISTRY] Skeleton ID not found: ${id}`);
+        const content = dbSkel.description;
+
+        // 1. Extract Interface
+        const interfaceMatch = content.match(/# Interface[\s\S]*?```[\w]*[\r\n]+([\s\S]*?)[\r\n]+```/);
+        const skeletonInterface = interfaceMatch ? interfaceMatch[1].trim() : '';
+
+        // 2. Extract System Prompt Addon
+        // Matches everything after "# System Prompt" up to the next heading or end of string
+        const promptMatch = content.match(/# System Prompt[\r\n]+([\s\S]*?)(?=[\r\n]+#|$)/);
+        const promptAddon = promptMatch ? promptMatch[1].trim() : '';
+
+        return {
+            id: dbSkel.id,
+            name: dbSkel.name,
+            interfaceContext: ENGINE_INTERFACE + '\n' + skeletonInterface,
+            systemPromptAddon: promptAddon
+        };
+
+    } catch (dbError) {
+        console.error(`[REGISTRY] DB lookup failed for ${id}:`, dbError);
         return null;
     }
-    return loadSkeleton(filename);
 }
 
-
-
-// For Director: Get skeleton directory as formatted string
+// For Director: Get skeleton directory (DirectorService now handles dynamic listing, but keeping this as utility)
 export { getSkeletonDirectory } from './directory.js';
-
-// For Engineer: Get skeleton context with interface and prompts
-export function getSkeletonContext(id: string): SkeletonContext | null {
-    console.log('[REGISTRY] Loading skeleton context for:', id);
-
-    const skeleton = getSkeleton(id);
-    if (!skeleton) {
-        console.warn('[REGISTRY] Skeleton not found:', id);
-        return null;
-    }
-
-    console.log('[REGISTRY] Skeleton loaded:', skeleton.name);
-
-    return {
-        id: skeleton.id,
-        name: skeleton.name,
-        interfaceContext: skeleton.interfaceContext,
-        systemPromptAddon: skeleton.systemPromptAddon
-    };
-}
-

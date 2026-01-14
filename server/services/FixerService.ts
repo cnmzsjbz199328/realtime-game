@@ -1,5 +1,6 @@
 import { IFixer, GameDefinition } from '../../core/domain/types.js';
 import { callAI } from './ai-client.js';
+import { prisma } from '../lib/prisma.js';
 
 export class FixerService implements IFixer {
     async fix(game: GameDefinition, error: string): Promise<GameDefinition> {
@@ -7,42 +8,36 @@ export class FixerService implements IFixer {
         console.log('[FIXER] Game:', game.title);
         console.log('[FIXER] Error:', error);
 
-        const prompt = `You are a Senior Game Engineer specializing in debugging and code fixing.
+        // Phase 2: Dynamic Prompts - Load from DB
+        let systemPrompt = '';
+        try {
+            const dbPrompt = await prisma.systemPrompt.findFirst({
+                where: { role: 'FIXER', isActive: true },
+                orderBy: { version: 'desc' }
+            });
+            if (dbPrompt) {
+                systemPrompt = dbPrompt.content;
+                console.log(`[FIXER] Using dynamic system prompt (v${dbPrompt.version})`);
+            }
+        } catch (dbError) {
+            console.warn('[FIXER] DB fetch failed, falling back to minimal prompt', dbError);
+        }
 
-The current game code failed in QA testing.
-
-Runtime Error: "${error}"
-
-Current Code:
+        const compositePrompt = systemPrompt
+            ? `${systemPrompt}\n\n=== Context ===\nRuntime Error: "${error}"\n\nCurrent Code:\n${game.code}`
+            : `You are a Senior Debugger. Fix the following error in the game code: "${error}". 
+            
+=== Current Code ===
 ${game.code}
 
-Task: Fix bugs in the code.
-
-Fix Guidelines:
-1. If error involves "strict mode" or "eval"/"arguments", remove all eval() calls, rename arguments/eval variables, use explicit parameter passing.
-2. If error involves "Canvas element not found" or "getContext", **REMOVE ALL DOM ACCESS CODE** (e.g. document.getElementById), strictly use ctx from draw parameters.
-3. Ensure single closure structure, exported interface must be: return { init: (state, width, height) => void, update, draw }.
-4. Maintain core game logic.
-5. ⚠️ CRITICAL: width and height are ONLY available in init and draw. In update(state, input, deltaTime), you **MUST NOT** use width/height directly; use state.width/state.height (saved in init).
-6. ⚠️ Check array boundaries (safe access) before accessing.
-7. ⚠️ INPUT HANDLING: \`input\` is a pure data object. It has NO methods. Use \`input.keys['KeyW']\` or \`input.isDown\` (boolean). DO NOT use \`input.isDown()\`.
-
-=== Output Format (Strict Text Format) ===
-Strictly output in the following format, do not wrap response in markdown code blocks:
-
-TITLE: ${game.title}
-DESCRIPTION: ${game.description}
+=== Output Format (STRICT) ===
+TITLE: (Keep same or improve)
+DESCRIPTION: (Keep same or improve)
 CODE:
 \`\`\`javascript
-// Fixed code
+// Fixed code here
 \`\`\`
-
-=== Important Constraints ===
-1. Do NOT output JSON
-2. CODE: must be followed by markdown code block
-3. Strictly forbidden to access document/window/canvas global objects
-4. Strictly forbidden to use new Image() or new Audio(), use Canvas API only
-5. Strictly forbidden to use requestAnimationFrame custom loops`;
+`;
 
         console.log('[FIXER] Calling AI for bug fix...');
         const startTime = Date.now();
@@ -51,9 +46,9 @@ CODE:
             const contentRaw = await callAI([
                 {
                     role: 'system',
-                    content: 'You are a Senior Game Engineer specializing in debugging. You fix runtime errors in JavaScript Canvas games.'
+                    content: 'You are an expert game debugger. You MUST output your response using the labels TITLE:, DESCRIPTION:, and CODE: followed by a javascript block. NO other text.'
                 },
-                { role: 'user', content: prompt }
+                { role: 'user', content: compositePrompt }
             ]);
 
             const elapsed = Date.now() - startTime;
@@ -65,14 +60,13 @@ CODE:
                 content = content.replace(/^```[a-z]*\n/, '').replace(/```$/, '');
             }
 
-            console.log('[FIXER] Parsing fixed game definition (Text Format)...');
+            console.log('[FIXER] Parsing fixed game definition...');
 
             const titleMatch = content.match(/TITLE:\s*(.+)/);
             const descMatch = content.match(/DESCRIPTION:\s*(.+)/);
             const codeMatch = content.match(/CODE:[\s\S]*?```(?:javascript|js)?\s*([\s\S]*?)```/);
 
             if (!titleMatch || !descMatch || !codeMatch) {
-                console.error('[FIXER] Parse Failed. Content:', content.substring(0, 200) + '...');
                 throw new Error('Failed to parse AI response. Expected format: TITLE, DESCRIPTION, CODE block.');
             }
 
@@ -83,7 +77,6 @@ CODE:
             };
 
             console.log('[FIXER] Fixed game title:', fixedGame.title);
-            console.log('[FIXER] Fixed code length:', fixedGame.code.length, 'chars');
             console.log('[FIXER] ========== Bug Fix Complete ==========');
 
             return fixedGame;
