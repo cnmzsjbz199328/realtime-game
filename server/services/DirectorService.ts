@@ -12,11 +12,11 @@ export class DirectorService implements IDirector {
         let skeletonDirectory = '';
         try {
             const dbSkeletons = await prisma.skeleton.findMany({
-                select: { id: true },
+                select: { id: true, description: true },
                 orderBy: { id: 'asc' }
             });
             if (dbSkeletons.length > 0) {
-                skeletonDirectory = dbSkeletons.map((s, idx) => `${idx + 1}. ${s.id}`).join('\n');
+                skeletonDirectory = dbSkeletons.map((s, idx) => `${idx + 1}. ${s.id}: ${s.description}`).join('\n');
                 console.log(`[DIRECTOR] Built dynamic directory with ${dbSkeletons.length} skeletons`);
             } else {
                 skeletonDirectory = getSkeletonDirectory();

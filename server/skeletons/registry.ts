@@ -20,20 +20,20 @@ export async function getSkeletonContext(id: string): Promise<SkeletonContext | 
             return null;
         }
 
-        const content = dbSkel.description;
+        const content = dbSkel.details || '';  // 从 details 字段读取详细指导
 
         // 1. Extract Interface
         const interfaceMatch = content.match(/# Interface[\s\S]*?```[\w]*[\r\n]+([\s\S]*?)[\r\n]+```/);
         const skeletonInterface = interfaceMatch ? interfaceMatch[1].trim() : '';
 
         // 2. Extract System Prompt Addon
-        // Matches everything after "# System Prompt" up to the next heading or end of string
-        const promptMatch = content.match(/# System Prompt[\r\n]+([\s\S]*?)(?=[\r\n]+#|$)/);
+        // 兼容两种标题："# System Prompt" 或 "# Game Logic Guidelines"
+        const promptMatch = content.match(/# (?:System Prompt|Game Logic Guidelines)[\r\n]+([\s\S]*?)(?=[\r\n]+#|$)/);
         const promptAddon = promptMatch ? promptMatch[1].trim() : '';
 
         return {
             id: dbSkel.id,
-            name: dbSkel.name,
+            description: dbSkel.description,  // 简短游戏类型描述
             interfaceContext: ENGINE_INTERFACE + '\n' + skeletonInterface,
             systemPromptAddon: promptAddon
         };

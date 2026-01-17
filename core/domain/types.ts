@@ -62,7 +62,7 @@ export interface IEngineer {
 
 export interface SkeletonContext {
     id: string;
-    name: string;
+    description: string;      // 简短游戏类型描述（如 "Paddle/Ball Physics"）
     interfaceContext: string;
     systemPromptAddon: string;
 }

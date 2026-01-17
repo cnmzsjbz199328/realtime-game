@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             throw new Error(`Skeleton not found: ${skeletonId}`);
         }
 
-        console.log('[API/CREATE] Skeleton loaded:', skeletonContext.name);
+        console.log('[API/CREATE] Skeleton loaded:', skeletonContext.description);
 
         // Phase 3: Engineer Code Generation
         console.log('[API/CREATE] Phase 3: Engineer Code Generation');
@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             game: gameDef,
             metadata: {
                 skeletonId,
-                skeletonName: skeletonContext.name
+                skeletonName: skeletonContext.description
             }
         });
 

@@ -1,5 +1,5 @@
 import { IEngineer, GameDefinition, SkeletonContext } from '../../core/domain/types.js';
-import { callAI } from './ai-client.js';
+import { callAIReasoning } from './ai-client.js';
 import { prisma } from '../lib/prisma.js';
 
 export class EngineerService implements IEngineer {
@@ -8,7 +8,7 @@ export class EngineerService implements IEngineer {
         expandedDesign: string
     ): Promise<GameDefinition> {
         console.log('[ENGINEER] ========== Code Generation Started ==========');
-        console.log('[ENGINEER] Skeleton:', skeletonContext.name, `(${skeletonContext.id})`);
+        console.log('[ENGINEER] Skeleton:', skeletonContext.description, `(${skeletonContext.id})`);
         console.log('[ENGINEER] Design length:', expandedDesign.length, 'chars');
 
         // Phase 2: Dynamic Prompts - Load from DB
@@ -32,7 +32,7 @@ export class EngineerService implements IEngineer {
 
         const gameDesignContext = `
 === SKELETON SPECIFIC GUIDELINES ===
-Game Type: ${skeletonContext.name}
+Game Type: ${skeletonContext.description}
 ${skeletonContext.systemPromptAddon ? skeletonContext.systemPromptAddon : ''}
 
 === DETAILED DESIGN CONCEPT ===
@@ -56,11 +56,8 @@ CODE:
         const startTime = Date.now();
 
         try {
-            const contentRaw = await callAI([
-                {
-                    role: 'system',
-                    content: 'You MUST output your response using the labels TITLE:, DESCRIPTION:, and CODE: followed by a javascript block. Be self-sufficient and handle all logic locally.'
-                },
+            // DeepSeek R1 不使用 system prompt，v9 宪法已包含所有必要指令
+            const contentRaw = await callAIReasoning([
                 { role: 'user', content: compositePrompt }
             ]);
 
