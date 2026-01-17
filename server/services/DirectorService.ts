@@ -16,7 +16,7 @@ export class DirectorService implements IDirector {
                 orderBy: { id: 'asc' }
             });
             if (dbSkeletons.length > 0) {
-                skeletonDirectory = dbSkeletons.map((s, idx) => `${idx + 1}. ${s.id}: ${s.description}`).join('\n');
+                skeletonDirectory = dbSkeletons.map((s) => `- ${s.id}: ${s.description}`).join('\n');
                 console.log(`[DIRECTOR] Built dynamic directory with ${dbSkeletons.length} skeletons`);
             } else {
                 skeletonDirectory = getSkeletonDirectory();
@@ -54,7 +54,7 @@ export class DirectorService implements IDirector {
             const contentRaw = await callAI([
                 {
                     role: 'system',
-                    content: 'You are a Game Design Director. You MUST return ONLY a JSON object with "skeletonId" and "expandedDesign" keys. NO other text.'
+                    content: 'You are a Game Design Director. You MUST return ONLY a JSON object with "skeletonId" and "expandedDesign" keys. The "skeletonId" MUST be the exact string identifier provided in the list (e.g. "tower_defense"), NOT a number. NO other text.'
                 },
                 { role: 'user', content: compositePrompt }
             ]);
