@@ -69,8 +69,31 @@ ${code}
         window.addEventListener('resize', resize);
         resize();
 
-        window.addEventListener('keydown', e => input.keys[e.code] = true);
-        window.addEventListener('keyup', e => input.keys[e.code] = false); // Bugfix: e.key vs e.code consistency
+        window.addEventListener('keydown', e => {
+            input.keys[e.code] = true;
+            input[e.code] = true;
+            if (e.key === ' ') input[' '] = true;
+            input[e.key.toLowerCase()] = true;
+            
+            // Basic aliases for AI compatibility
+            if (e.key === 'ArrowLeft') input.left = true;
+            if (e.key === 'ArrowRight') input.right = true;
+            if (e.key === 'ArrowUp') input.up = true;
+            if (e.key === 'ArrowDown') input.down = true;
+            if (e.key === ' ') input.Space = true;
+        });
+        window.addEventListener('keyup', e => {
+            input.keys[e.code] = false;
+            input[e.code] = false;
+            if (e.key === ' ') input[' '] = false;
+            input[e.key.toLowerCase()] = false;
+
+            if (e.key === 'ArrowLeft') input.left = false;
+            if (e.key === 'ArrowRight') input.right = false;
+            if (e.key === 'ArrowUp') input.up = false;
+            if (e.key === 'ArrowDown') input.down = false;
+            if (e.key === ' ') input.Space = false;
+        });
         window.addEventListener('mousedown', e => {
             input.isDown = true;
             input.x = e.clientX;

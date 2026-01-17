@@ -18,9 +18,17 @@ model SavedGame {
 
 // --- Evolution Layer Models ---
 
+enum SystemPromptRole {
+  DIRECTOR
+  ENGINEER
+  FIXER
+  REMIXER
+  ARCHITECT
+}
+
 model SystemPrompt {
   id          String   @id @default(uuid())
-  role        String   // 'ENGINEER', 'DIRECTOR', 'FIXER', 'REMIXER'
+  role        SystemPromptRole
   content     String   @db.Text
   version     Int      @default(1)
   isActive    Boolean  @default(false)

@@ -34,6 +34,7 @@ export async function getSkeletonContext(id: string): Promise<SkeletonContext | 
         return {
             id: dbSkel.id,
             description: dbSkel.description,  // 简短游戏类型描述
+            details: content,                 // 原始详细内容
             interfaceContext: ENGINE_INTERFACE + '\n' + skeletonInterface,
             systemPromptAddon: promptAddon
         };

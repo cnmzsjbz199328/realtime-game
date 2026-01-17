@@ -5,11 +5,15 @@ import { prisma } from '../lib/prisma.js';
 export class EngineerService implements IEngineer {
     async generate(
         skeletonContext: SkeletonContext,
-        expandedDesign: string
+        expandedDesign: string,
+        architectSpec?: string
     ): Promise<GameDefinition> {
         console.log('[ENGINEER] ========== Code Generation Started ==========');
         console.log('[ENGINEER] Skeleton:', skeletonContext.description, `(${skeletonContext.id})`);
         console.log('[ENGINEER] Design length:', expandedDesign.length, 'chars');
+        if (architectSpec) {
+            console.log('[ENGINEER] Architect Spec provided. Length:', architectSpec.length, 'chars');
+        }
 
         // Phase 2: Dynamic Prompts - Load from DB
         let systemPrompt = '';
@@ -30,14 +34,24 @@ export class EngineerService implements IEngineer {
             ? expandedDesign
             : JSON.stringify(expandedDesign, null, 2);
 
-        const gameDesignContext = `
+        let gameDesignContext = `
 === SKELETON SPECIFIC GUIDELINES ===
 Game Type: ${skeletonContext.description}
-${skeletonContext.systemPromptAddon ? skeletonContext.systemPromptAddon : ''}
+${skeletonContext.interfaceContext ? '\n=== ENGINE INTERFACE ===\n' + skeletonContext.interfaceContext : ''}
+${skeletonContext.systemPromptAddon ? '\n=== LOGIC GUIDELINES ===\n' + skeletonContext.systemPromptAddon : ''}
 
 === DETAILED DESIGN CONCEPT ===
 ${designContent}
 `;
+
+        if (architectSpec) {
+            gameDesignContext += `
+=== ARCHITECTURAL SPECIFICATION (BLUEPRINT) ===
+You MUST strictly implement the following logic and state schema. 
+This Spec is your definitive guide for "How" to build the game.
+${architectSpec}
+            `;
+        }
 
         const compositePrompt = systemPrompt
             ? `${systemPrompt}\n\n=== CONTEXT ===\n${gameDesignContext}`

@@ -25,7 +25,6 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
 
   // Setup Input Listeners
   useEffect(() => {
-    // ... (listeners code is fine, no changes needed here, so not including it to keep chunks small if possible, but replace_file_content replaces the whole block defined by Start/EndLine)
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvasRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
@@ -34,8 +33,34 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     };
     const handleMouseDown = () => { inputRef.current.isDown = true; };
     const handleMouseUp = () => { inputRef.current.isDown = false; };
-    const handleKeyDown = (e: KeyboardEvent) => { inputRef.current.keys[e.code] = true; };
-    const handleKeyUp = (e: KeyboardEvent) => { inputRef.current.keys[e.code] = false; };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      inputRef.current.keys[e.code] = true;
+      // Also expose directly for AI convenience
+      (inputRef.current as any)[e.code] = true;
+      if (e.key === ' ') (inputRef.current as any)[' '] = true;
+      (inputRef.current as any)[e.key.toLowerCase()] = true;
+
+      // Basic aliases
+      if (e.key === 'ArrowLeft') (inputRef.current as any).left = true;
+      if (e.key === 'ArrowRight') (inputRef.current as any).right = true;
+      if (e.key === 'ArrowUp') (inputRef.current as any).up = true;
+      if (e.key === 'ArrowDown') (inputRef.current as any).down = true;
+      if (e.key === ' ') (inputRef.current as any).Space = true;
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      inputRef.current.keys[e.code] = false;
+      (inputRef.current as any)[e.code] = false;
+      if (e.key === ' ') (inputRef.current as any)[' '] = false;
+      (inputRef.current as any)[e.key.toLowerCase()] = false;
+
+      if (e.key === 'ArrowLeft') (inputRef.current as any).left = false;
+      if (e.key === 'ArrowRight') (inputRef.current as any).right = false;
+      if (e.key === 'ArrowUp') (inputRef.current as any).up = false;
+      if (e.key === 'ArrowDown') (inputRef.current as any).down = false;
+      if (e.key === ' ') (inputRef.current as any).Space = false;
+    };
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mousedown', handleMouseDown);

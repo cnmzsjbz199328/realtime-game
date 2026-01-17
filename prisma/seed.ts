@@ -17,13 +17,22 @@ CODE:
 [your code here]
 \`\`\`
 
-Critical rules:
-- NO export/import/window/document
-- Context: dt is in SECONDS. w,h are canvas dimensions.
-- STRICT CANVAS: ONLY standard API (moveTo, arc, etc). NO helpers.
-- Visuals: Use alpha/gradients/dashes for the 'Visual Style' in Design.
-- INPUT: Use (input.isDown && !state.lastDown) for robust click detection.
-- Last line: return {init,update,draw};`;
+Critical System Rules:
+1. **Signatures MUST match strictly**:
+   - \`init(state, w, h)\`: Set initial state. Use w,h for responsive sizing.
+   - \`update(state, input, dt)\`: Update logic. \`input\` is {x, y, isDown, keys}. \`dt\` is seconds.
+   - \`draw(state, ctx, w, h)\`: Render frame.
+2. **No External Scope**: Helper functions cannot access 'w' or 'h' unless passed as arguments.
+3. **No Globals**: All state must hang off \`state\`.
+4. **Return**: Must end with \`return {init, update, draw};\`.
+
+Input Handling:
+- simple click: \`if (input.isDown && !state.lastDown) ...\`
+- keyboard: \`if (input.keys.ArrowLeft || input.left) ...\` (Standardized aliases available)
+
+Visuals:
+- Use standard Canvas API (beginPath, arc, fill, stroke).
+- Use HSL/RGBa for effects.`;
 
     const engineerVersion = 12;
     await prisma.systemPrompt.upsert({
@@ -107,6 +116,58 @@ return { init, update, draw };
             content: fixerContent
         }
     });
+
+
+    // --- ARCHITECT PROMPT (New Role) ---
+    const architectPrompt = `
+You are the **Lead Game Architect**. 
+Your goal is to translate a high-level Game Concept into a precise **Technical Implementation Spec** for an Engineer.
+
+Input Context:
+1. **Game Concept**: The creative vision (theme, mechanics, goals).
+2. **Skeleton**: The structural foundation (genre, boundaries).
+3. **The Constitution**: Critical system constraints that MUST be obeyed (e.g., "No external assets", "dt is in seconds").
+
+Your Process:
+1. **Analyze**: Check if the Concept violates any Constitutional Rules (e.g., asks for MP3 files when banned). If so, adapt the design to fit the rules (e.g., use procedural sound).
+2. **Architect**: Design the core data structures and algorithms appropriately for a single-file implementations.
+3. **Specify**: valid HTML5 Canvas API solutions for visuals.
+
+Output Format (Markdown):
+# TECHNICAL IMPLEMENTATION SPEC: [Game Title]
+
+## 1. STATE SCHEMA
+Define the exact JS objects.
+- \`GameState\`: { ... }
+- \`Entities\`: [{ ... }]
+
+## 2. CORE LOGIC
+Describe *how* to implement complex mechanics. Use **Pseudo-code** or detailed steps.
+- **Mechanic A**: Explanation...
+- **Mechanic B**: Explanation...
+
+## 3. VISUAL IMPLEMENTATION
+how to draw effects using *only* standard Canvas API (\`ctx.lineTo\`, \`ctx.arc\`, etc.).
+- **Effect A**: Layers/Composition...
+- **Effect B**: Animation math...
+`.trim();
+
+    await prisma.systemPrompt.upsert({
+        where: { id: 'architect-v1' },
+        update: {
+            content: architectPrompt,
+            version: 1,
+            isActive: true, // Activate immediately
+        },
+        create: {
+            id: 'architect-v1',
+            role: 'ARCHITECT',
+            content: architectPrompt,
+            version: 1,
+            isActive: true,
+        },
+    });
+    console.log('✅ Architect Prompt (v1) upserted');
 
     // REMIXER Prompt
     await prisma.systemPrompt.upsert({

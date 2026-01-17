@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { DirectorService } from '../../server/services/DirectorService.js';
 import { EngineerService } from '../../server/services/EngineerService.js';
+import { ArchitectService } from '../../server/services/ArchitectService.js';
 import { getSkeletonContext } from '../../server/skeletons/registry.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -37,10 +38,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         console.log('[API/CREATE] Skeleton loaded:', skeletonContext.description);
 
+        // Phase 2.5: Architect Spec Generation
+        console.log('[API/CREATE] Phase 2.5: Architect Spec Generation');
+        let architectSpec: string | undefined;
+        try {
+            // Architect generates the blueprint (State Schema, Core Logic, Visuals)
+            architectSpec = await ArchitectService.generateSpec(
+                expandedDesign, // Director's Concept
+                skeletonContext
+            );
+            console.log('[API/CREATE] Architect Spec generated successfully.');
+        } catch (archError) {
+            console.warn('[API/CREATE] Architect failed, falling back to direct engineering:', archError);
+            // Fallback: Proceed without spec (Engineer will interpret concept directly)
+        }
+
         // Phase 3: Engineer Code Generation
         console.log('[API/CREATE] Phase 3: Engineer Code Generation');
         const engineer = new EngineerService();
-        const gameDef = await engineer.generate(skeletonContext, expandedDesign);
+        // Pass the Architect's Spec to the Engineer
+        const gameDef = await engineer.generate(skeletonContext, expandedDesign, architectSpec);
 
         console.log('[API/CREATE] Generated:', gameDef.title);
         console.log('[API/CREATE] ========== Generation Complete ==========');
@@ -50,7 +67,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             game: gameDef,
             metadata: {
                 skeletonId,
-                skeletonName: skeletonContext.description
+                skeletonName: skeletonContext.description,
+                architectUsed: !!architectSpec
             }
         });
 

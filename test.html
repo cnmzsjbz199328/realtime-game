@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Game Architect Benchmark</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Icons
+        const PlayIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>;
+        const DownloadIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
+        const AlertIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
+        const KeyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>;
+        const CodeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>;
+        const CopyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>;
+
+        const SCENARIOS = {
+            A: {
+                name: '场景 A：即时战斗 (Action)',
+                prompt: `You are a Lead Game Architect. Create a TECHNICAL IMPLEMENTATION SPEC for a game.
+=== INPUTS ===
+1. Concept: "Neon Pulse Survivor"
+- A fast-paced survival game where the player controls a glowing geometric ship.
+- Enemies are sound-wave patterns that pulse to a beat.
+- Weapon: An auto-targeting laser beam that chains between enemies.
+- Visuals: Dark background, extreme neon contrast, screen shake on impact.
+2. Constraints (The Constitution):
+- NO external libraries. NO global state.
+- dt is in SECONDS.
+- Standard Canvas API only (ctx.lineTo, ctx.stroke).
+- INPUT: Use robust (input.isDown && !state.lastDown) for triggers.
+=== OUTPUT FORMAT ===
+Produce a Markdown spec covering:
+1. STATE SCHEMA: Define 'Ship', 'Enemy' (with pulse timer), and 'Laser' structures.
+2. CORE LOGIC: 
+- Explain the 'Chain Laser' algorithm (finding nearest neighbors).
+- Explain how to sync enemy movement to a 'beat' timer.
+3. VISUAL IMPLEMENTATION: 
+- How to draw the 'Neon Glow' using standard API.
+- How to implement 'Screen Shake' via context translation.`
+            },
+            B: {
+                name: '场景 B：复杂策略 (Strategy)',
+                prompt: `You are a Lead Game Architect. Create a TECHNICAL IMPLEMENTATION SPEC for a game.
+=== INPUTS ===
+1. Concept: "Quantum Chess Roguelite"
+- A 8x8 grid tactics game.
+- The player controls 3 units with unique chess-like moves (Knight, Rook, Bishop).
+- Enemies telegraph their attacks 1 turn in advance (showing danger zones on grid).
+- Mechanic: 'Quantum Swap' - Player can swap positions of any two units once per turn to dodge attacks.
+2. Constraints (The Constitution):
+- NO external libraries. NO global state.
+- dt is in SECONDS.
+- Standard Canvas API only.
+- LOGIC: Must implement robust grid coordinate mapping (pixel <-> grid x,y).
+=== OUTPUT FORMAT ===
+Produce a Markdown spec covering:
+1. STATE SCHEMA: Define the 8x8 Grid structure and Unit objects (including 'movePattern').
+2. CORE LOGIC: 
+- Pseudo-code for 'Telegraphing System' (calculating enemy attack zones for next turn).
+- The State Machine flow: Player Input -> Animation -> Enemy Turn -> Resolution.
+3. VISUAL IMPLEMENTATION: 
+- How to render the Grid and highlight 'Danger Zones' (semi-transparent overlays).`
+            },
+            C: {
+                name: '场景 C：物理模拟 (Physics)',
+                prompt: `You are a Lead Game Architect. Create a TECHNICAL IMPLEMENTATION SPEC for a game.
+=== INPUTS ===
+1. Concept: "Slime Grapple"
+- A vertical platformer where the player is a sticky slime ball.
+- Core Mechanic: Click to shoot a grapple hook that attaches to ceilings.
+- Physics: Swing momentum, gravity, and elastic collisions when hitting walls.
+- Goal: Climb as high as possible before rising lava catches you.
+2. Constraints (The Constitution):
+- NO physics engines. Custom Verlet/Euler integration only.
+- dt is in SECONDS.
+- Standard Canvas API only.
+- INPUT: Mouse click logic must be precise.
+=== OUTPUT FORMAT ===
+Produce a Markdown spec covering:
+1. STATE SCHEMA: Define 'Slime' (pos, velocity, grappleState) and 'Lava'.
+2. CORE LOGIC: 
+- The Grapple Physics: How to calculate swing velocity (pendulum logic) using basic trigonometry.
+- Collision Detection: Circle (Slime) vs Rectangle (Platform) resolution.
+3. VISUAL IMPLEMENTATION: 
+- How to draw the 'Rope' (line connectivity).
+- How to simulate the 'squish' effect of the slime on impact (scaling).`
+            }
+        };
+
+        const MODELS = {
+            small: { name: 'Small (Gemini)', endpoint: 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/small' },
+            medium: { name: 'Medium (Llama)', endpoint: 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/medium' },
+            large: { name: 'Large (Cohere)', endpoint: 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large' }
+        };
+
+        function App() {
+            const [results, setResults] = useState({});
+            const [loading, setLoading] = useState({});
+            // Stores code generation results: { [specId]: { content: string, status: 'idle'|'loading'|'done'|'error' } }
+            const [codeResults, setCodeResults] = useState({});
+            const [selectedScenario, setSelectedScenario] = useState('A');
+            const [apiKey, setApiKey] = useState('');
+            const [codeEndpoint, setCodeEndpoint] = useState('https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large/deepseek-r1');
+
+            const testModel = async (modelKey, scenarioKey) => {
+                const testKey = `${scenarioKey}-${modelKey}`;
+                setLoading(prev => ({ ...prev, [testKey]: true }));
+
+                try {
+                    const startTime = performance.now();
+                    const scenario = SCENARIOS[scenarioKey];
+                    const model = MODELS[modelKey];
+
+                    const response = await fetch(model.endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            messages: [
+                                { role: 'system', content: 'You are a helpful AI assistant.' },
+                                { role: 'user', content: scenario.prompt }
+                            ]
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    const data = await response.json();
+                    const endTime = performance.now();
+
+                    // Adapt to different response formats
+                    let content = '';
+                    if (data.choices && data.choices[0]?.message?.content) content = data.choices[0].message.content;
+                    else if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) content = data.candidates[0].content.parts[0].text;
+                    else if (data.response) content = data.response;
+                    else content = JSON.stringify(data);
+
+                    setResults(prev => ({
+                        ...prev,
+                        [testKey]: {
+                            content: content,
+                            duration: Math.round(endTime - startTime),
+                            success: true,
+                            modelKey,
+                            scenarioKey
+                        }
+                    }));
+                } catch (error) {
+                    setResults(prev => ({
+                        ...prev,
+                        [testKey]: {
+                            error: error.message,
+                            success: false,
+                            modelKey,
+                            scenarioKey
+                        }
+                    }));
+                } finally {
+                    setLoading(prev => ({ ...prev, [testKey]: false }));
+                }
+            };
+
+            const generateCode = async (specContent, testKey) => {
+                if (!apiKey) return alert('请输入 API Key');
+
+                setCodeResults(prev => ({
+                    ...prev,
+                    [testKey]: { status: 'loading', content: '' }
+                }));
+
+                try {
+                    // Start Timer for Code Gen
+                    const startTime = performance.now();
+
+                    // Using DeepSeek R1 specific endpoint for code generation
+                    console.log(`[Code Gen] Sending Spec to Engineer (DeepSeek R1) at ${codeEndpoint}...`);
+
+                    const response = await fetch(codeEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            messages: [
+                                {
+                                    role: 'system',
+                                    content: 'You are an expert Game Engineer. Your goal is to write a single-file HTML5 game based STRICTLY on the technical specification provided by the Architect. \n\nRULES:\n1. Output exactly ONE HTML block: ```html ... ```\n2. NO external assets (images/sounds). Use Canvas API procedural drawing.\n3. Implement ALL state and logic described in the spec.\n4. Ensure the game is playable immediately.'
+                                },
+                                { role: 'user', content: `Here is the Implementation Spec. Write the code:\n\n${specContent}` }
+                            ]
+                        })
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+
+                    let content = '';
+                    if (data.choices && data.choices[0]?.message?.content) content = data.choices[0].message.content;
+                    else if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) content = data.candidates[0].content.parts[0].text;
+                    else if (data.response) content = data.response;
+                    else content = JSON.stringify(data);
+
+                    const duration = Math.round(performance.now() - startTime);
+
+                    setCodeResults(prev => ({
+                        ...prev,
+                        [testKey]: { status: 'done', content, duration }
+                    }));
+
+                } catch (e) {
+                    setCodeResults(prev => ({
+                        ...prev,
+                        [testKey]: { status: 'error', error: e.message }
+                    }));
+                }
+            };
+
+            const copyToClipboard = (text) => {
+                navigator.clipboard.writeText(text);
+                alert('Copied to clipboard!');
+            };
+
+            const testAllModels = async () => {
+                if (!apiKey) {
+                    alert('请输入 API Key');
+                    return;
+                }
+                for (const modelKey of Object.keys(MODELS)) {
+                    await testModel(modelKey, selectedScenario);
+                }
+            };
+
+            const evaluateQuality = (content) => {
+                if (!content) return 0;
+                let score = 0;
+                if (/STATE SCHEMA/i.test(content)) score += 1;
+                if (/CORE LOGIC/i.test(content)) score += 1;
+                if (/VISUAL IMPLEMENTATION/i.test(content)) score += 1;
+                if ((content.match(/```/g) || []).length >= 2) score += 1;
+                if (content.length > 2000) score += 1;
+                return score;
+            };
+
+            const exportResults = () => {
+                const markdown = generateMarkdownReport();
+                const blob = new Blob([markdown], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'game-architect-test-results.md';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const generateMarkdownReport = () => {
+                let md = '# 游戏架构师 AI 模型测试报告\n\n';
+                md += `**测试时间**: ${new Date().toLocaleString()}\n\n`;
+                for (const [sKey, scenario] of Object.entries(SCENARIOS)) {
+                    md += `## ${scenario.name}\n\n`;
+                    for (const [mKey, model] of Object.entries(MODELS)) {
+                        const testKey = `${sKey}-${mKey}`;
+                        const r = results[testKey];
+                        const c = codeResults[testKey];
+
+                        if (r && r.success) {
+                            md += `### ${model.name}\n`;
+                            md += `#### Architect Spec\n`;
+                            md += `- 耗时: ${r.duration}ms\n`;
+                            md += `- 评分: ${evaluateQuality(r.content)}/5\n\n`;
+                            md += '```markdown\n' + r.content + '\n```\n\n';
+
+                            if (c && c.status === 'done') {
+                                md += `#### Engineer Code (DeepSeek R1)\n`;
+                                md += `- 耗时: ${c.duration}ms\n\n`;
+                                md += '```html\n' + c.content + '\n```\n\n';
+                            } else if (c && c.status === 'error') {
+                                md += `#### Engineer Code Failed: ${c.error}\n\n`;
+                            }
+                        }
+                    }
+                }
+                return md;
+            };
+
+            return (
+                <div className="max-w-7xl mx-auto p-6">
+                    <div className="text-center mb-10">
+                        <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600 mb-2">
+                            🎮 游戏架构师 AI 竞技场
+                        </h1>
+                        <p className="text-slate-400">Comparing Models -> Code Generation (via DeepSeek R1)</p>
+                    </div>
+
+                    <div className="glass rounded-xl p-6 mb-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="flex gap-4 items-center">
+                                <KeyIcon className="text-purple-400 flex-shrink-0" />
+                                <input
+                                    type="password"
+                                    placeholder="Input API Key..."
+                                    className="w-full bg-black/30 border border-purple-500/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500"
+                                    value={apiKey}
+                                    onChange={(e) => setApiKey(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-4 items-center">
+                                <CodeIcon className="text-blue-400 flex-shrink-0" />
+                                <input
+                                    type="text"
+                                    placeholder="Code Gen Endpoint (DeepSeek R1 URL)..."
+                                    className="w-full bg-black/30 border border-blue-500/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500 text-xs font-mono"
+                                    value={codeEndpoint}
+                                    onChange={(e) => setCodeEndpoint(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                            {Object.entries(SCENARIOS).map(([key, s]) => (
+                                <button key={key}
+                                    onClick={() => setSelectedScenario(key)}
+                                    className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${selectedScenario === key ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                                >
+                                    {s.name}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="bg-slate-800 rounded-lg p-4 mb-6 text-sm text-slate-300 font-mono h-32 overflow-y-auto">
+                            {SCENARIOS[selectedScenario].prompt}
+                        </div>
+
+                        <button onClick={testAllModels} disabled={Object.values(loading).some(b => b)}
+                            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 py-3 rounded-lg font-bold hover:brightness-110 disabled:opacity-50 flex justify-center items-center gap-2"
+                        >
+                            <PlayIcon /> 开始 Benchmarking (Specs)
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-8">
+                        {Object.entries(MODELS).map(([mKey, model]) => {
+                            const testKey = `${selectedScenario}-${mKey}`;
+                            const result = results[testKey];
+                            const isLoading = loading[testKey];
+                            const score = result?.success ? evaluateQuality(result.content) : 0;
+                            const codeResult = codeResults[testKey];
+
+                            return (
+                                <div key={mKey} className="glass rounded-xl p-6 border border-slate-700">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <h3 className="font-bold text-xl text-purple-300">{model.name}</h3>
+                                            <span className="text-slate-500 text-sm">Architect Role</span>
+                                        </div>
+                                        {result?.success && <span className="text-yellow-400 text-sm font-bold px-3 py-1 bg-yellow-400/10 rounded-full">{score}/5 ⭐ Quality</span>}
+                                    </div>
+
+                                    {/* SPEC OUTPUT AREA */}
+                                    <div className="bg-black/40 rounded-lg p-4 font-mono text-xs overflow-y-auto max-h-[300px] mb-4 relative border border-slate-700/50">
+                                        {isLoading ? (
+                                            <div className="flex flex-col items-center justify-center h-32 text-purple-400 animate-pulse">
+                                                <span>Thinking...</span>
+                                            </div>
+                                        ) : result?.success ? (
+                                            <div className="whitespace-pre-wrap">{result.content}</div>
+                                        ) : result?.error ? (
+                                            <div className="text-red-400 flex items-center gap-2"><AlertIcon /> {result.error}</div>
+                                        ) : (
+                                            <div className="text-slate-500 text-center py-10">Waiting for Benchmark...</div>
+                                        )}
+                                    </div>
+
+                                    {/* METRICS & ACTIONS */}
+                                    {result?.success && (
+                                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-700/50">
+                                            <div className="text-xs text-slate-400 flex gap-4">
+                                                <span>⏱️ Spec Time: {result.duration}ms</span>
+                                                <span>📝 Length: {result.content.length}</span>
+                                            </div>
+
+                                            <div className="flex gap-2">
+                                                <button onClick={() => copyToClipboard(result.content)}
+                                                    className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded text-xs flex items-center gap-1 transition-colors">
+                                                    <CopyIcon width={14} /> Copy Spec
+                                                </button>
+                                                <button onClick={() => generateCode(result.content, testKey)}
+                                                    disabled={codeResult?.status === 'loading'}
+                                                    className="px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold flex items-center gap-1 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                                    {codeResult?.status === 'loading' ? (
+                                                        <span className="animate-spin mr-1">⚡</span>
+                                                    ) : <CodeIcon width={14} />}
+                                                    {codeResult?.status === 'loading' ? 'Coding...' : 'Gen Code (DeepSeek R1)'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* CODE GENERATION RESULT AREA */}
+                                    {codeResult && (
+                                        <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">
+                                                    Engineer Output (DeepSeek R1)
+                                                </span>
+                                                {codeResult.status === 'done' && (
+                                                    <span className="text-xs text-slate-500">⏱️ Code Time: {codeResult.duration}ms</span>
+                                                )}
+                                            </div>
+
+                                            <div className={`rounded-lg border text-xs font-mono p-4 overflow-y-auto max-h-[400px] relative ${codeResult.status === 'error' ? 'bg-red-900/20 border-red-500/30 text-red-300' :
+                                                'bg-blue-900/10 border-blue-500/30 text-blue-100'
+                                                }`}>
+                                                {codeResult.status === 'loading' && (
+                                                    <div className="flex flex-col gap-2 items-center justify-center py-8">
+                                                        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                                        <div className="text-blue-400">Reading Spec & Writing Code...</div>
+                                                    </div>
+                                                )}
+
+                                                {codeResult.status === 'done' && (
+                                                    <>
+                                                        <div className="whitespace-pre-wrap">{codeResult.content.substring(0, 5000)}...</div>
+                                                        <button
+                                                            onClick={() => {
+                                                                const blob = new Blob([codeResult.content], { type: 'text/html' });
+                                                                const url = URL.createObjectURL(blob);
+                                                                window.open(url, '_blank');
+                                                            }}
+                                                            className="absolute top-2 right-2 px-3 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs shadow-lg"
+                                                        >
+                                                            Play / Preview
+                                                        </button>
+                                                    </>
+                                                )}
+
+                                                {codeResult.status === 'error' && (
+                                                    <div className="flex gap-2 items-start">
+                                                        <AlertIcon />
+                                                        <div>
+                                                            <div className="font-bold">Generation Failed</div>
+                                                            <div>{codeResult.error}</div>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    {Object.keys(results).length > 0 && (
+                        <div className="mt-8 text-center">
+                            <button onClick={exportResults} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto">
+                                <DownloadIcon /> 导出 Markdown 报告
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

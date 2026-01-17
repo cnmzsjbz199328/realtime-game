@@ -5,6 +5,7 @@
  */
 
 const MAIN_API = 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large';
+const SMALL_API = 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/small';
 const DEEPSEEK_API = 'https://unified-ai-backend.tj15982183241.workers.dev/v1/models/large/deepseek-r1';
 
 /**
@@ -13,6 +14,14 @@ const DEEPSEEK_API = 'https://unified-ai-backend.tj15982183241.workers.dev/v1/mo
  */
 export async function callAI(messages: any[]): Promise<string> {
     return callAIInternal(MAIN_API, messages, 'Main AI');
+}
+
+/**
+ * Fast/Architect AI call (Architect)
+ * Uses Small endpoint (Gemini)
+ */
+export async function callAISmall(messages: any[]): Promise<string> {
+    return callAIInternal(SMALL_API, messages, 'Small AI (Gemini)');
 }
 
 /**
