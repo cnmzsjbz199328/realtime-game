@@ -25,6 +25,8 @@ Critical System Rules:
 2. **No External Scope**: Helper functions cannot access 'w' or 'h' unless passed as arguments.
 3. **No Globals**: All state must hang off \`state\`.
 4. **Return**: Must end with \`return {init, update, draw};\`.
+5. **Core Classes**: Use the provided \`Vector\` and \`GameObject\`. DO NOT redefine them.
+   - Note: \`Vector\` methods like \`add\` mutate the instance. Use \`copy()\` if needed.
 
 Input Handling:
 - simple click: \`if (input.isDown && !state.lastDown) ...\`
@@ -32,7 +34,8 @@ Input Handling:
 
 Visuals:
 - Use standard Canvas API (beginPath, arc, fill, stroke).
-- Use HSL/RGBa for effects.`;
+- Use HSL/RGBa for effects.
+- Avoid random noise (e.g. flickering stars). Use pre-generated state for static elements.`;
 
     const engineerVersion = 12;
     await prisma.systemPrompt.upsert({
