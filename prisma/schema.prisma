@@ -30,8 +30,8 @@ model SystemPrompt {
 
 model Skeleton {
   id          String   @id // e.g., 'breakout_paddle'
-  name        String
-  description String   @db.Text // 存储完整的游戏设计指南和 System Prompt
+  description String   // 简短游戏类型描述（用于 Director 分类）
+  details     String   @db.Text // 详细游戏指导和 System Prompt（用于 Engineer 生成）
   version     Int      @default(1)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
