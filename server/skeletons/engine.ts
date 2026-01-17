@@ -20,7 +20,7 @@ class GameObject {
         this.active = true;
         this.velocity = new Vector(0, 0);
     }
-    update(dt, state) {
+    update(dt, state, w, h) {
         this.x += this.velocity.x * dt;
         this.y += this.velocity.y * dt;
     }
@@ -46,7 +46,7 @@ export const ENGINE_INTERFACE = `
 // state (managed by engine), input (keys/mouse), deltaTime: number
 
 class Vector { constructor(x,y); x,y:number; add(v); static distance(v1,v2); }
-class GameObject { constructor(x,y,radius,color); x,y,radius:number; color:string; active:boolean; velocity:Vector; update(dt, state); draw(ctx); }
+class GameObject { constructor(x,y,radius,color); x,y,radius:number; color:string; active:boolean; velocity:Vector; update(dt, state, w, h); draw(ctx); }
 
 /** 
  * input: { 

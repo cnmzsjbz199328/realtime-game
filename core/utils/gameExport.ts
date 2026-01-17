@@ -96,28 +96,42 @@ ${code}
         });
         window.addEventListener('mousedown', e => {
             input.isDown = true;
-            input.x = e.clientX;
-            input.y = e.clientY;
+            updateCoord(e.clientX, e.clientY);
         });
         window.addEventListener('mouseup', () => input.isDown = false);
         window.addEventListener('mousemove', e => {
-            input.x = e.clientX;
-            input.y = e.clientY;
+            updateCoord(e.clientX, e.clientY);
         });
+
         // Touch supports
         window.addEventListener('touchstart', e => {
             input.isDown = true;
-            input.x = e.touches[0].clientX;
-            input.y = e.touches[0].clientY;
+            if (e.touches.length > 0) updateCoord(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.target === canvas) e.preventDefault();
+        }, { passive: false });
+        window.addEventListener('touchmove', e => {
+            if (e.touches.length > 0) updateCoord(e.touches[0].clientX, e.touches[0].clientY);
+            if (e.target === canvas) e.preventDefault();
+        }, { passive: false });
+        window.addEventListener('touchend', e => {
+            input.isDown = false;
+            // if (e.target === canvas) e.preventDefault();
         });
-        window.addEventListener('touchend', () => input.isDown = false);
+
+        function updateCoord(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            input.x = (clientX - rect.left) * scaleX;
+            input.y = (clientY - rect.top) * scaleY;
+        }
 
 
         // 5. Game Loop
         let lastTime = performance.now();
         
         // Init Call
-        if (gameDef.init) gameDef.init(state, state.width, state.height);
+        if (gameDef.init) gameDef.init(state, canvas.width, canvas.height);
 
         function loop(timestamp) {
             const deltaTime = (timestamp - lastTime) / 1000; // Seconds
@@ -125,8 +139,8 @@ ${code}
             const safeDelta = Math.min(deltaTime, 0.1); 
 
             try {
-                if (gameDef.update) gameDef.update(state, input, safeDelta);
-                if (gameDef.draw) gameDef.draw(state, ctx, state.width, state.height);
+                if (gameDef.update) gameDef.update(state, input, safeDelta, canvas.width, canvas.height);
+                if (gameDef.draw) gameDef.draw(state, ctx, canvas.width, canvas.height);
             } catch (e) {
                 console.error("Game Loop Error:", e);
                 ctx.fillStyle = "red";

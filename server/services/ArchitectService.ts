@@ -33,7 +33,7 @@ export class ArchitectService {
 - Single file output constraints.
 - SANDBOX SIGNATURES (MUST ADHERE):
   * init(state, w, h)
-  * update(state, input, dt)
+  * update(state, input, dt, w, h)
   * draw(state, ctx, w, h)
     `.trim();
 

@@ -20,7 +20,7 @@ CODE:
 Critical System Rules:
 1. **Signatures MUST match strictly**:
    - \`init(state, w, h)\`: Set initial state. Use w,h for responsive sizing.
-   - \`update(state, input, dt)\`: Update logic. \`input\` is {x, y, isDown, keys}. \`dt\` is seconds.
+   - \`update(state, input, dt, w, h)\`: Update logic. \`input\` is {x, y, isDown, keys}. \`dt\` is seconds. Use w,h for boundary checks.
    - \`draw(state, ctx, w, h)\`: Render frame.
 2. **No External Scope**: Helper functions cannot access 'w' or 'h' unless passed as arguments.
 3. **No Globals**: All state must hang off \`state\`.
@@ -81,10 +81,10 @@ Return JSON only:
 You MUST keep the original TITLE and DESCRIPTION exactly as provided.
 ONLY fix the CODE section. DO NOT change the game title or description.
 
-=== SANDBOX PROTOCOL (v5 STRICT) ===
+=== SANDBOX PROTOCOL (v6 STRICT) ===
 1. **Signatures**: MUST match EXACTLY:
    - init(state, w, h)
-   - update(state, input, dt)
+   - update(state, input, dt, w, h)
    - draw(state, ctx, w, h)
 2. **Context Attributes**: 'ctx' has NO 'w' or 'h' attributes. Use the 'w' and 'h' arguments passed to the functions.
 3. **NO "export" keywords**: The environment uses 'new Function()'. 'export' will cause a crash.
