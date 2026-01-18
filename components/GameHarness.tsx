@@ -23,6 +23,13 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
   const inputRef = useRef<InputState>({ x: 0, y: 0, isDown: false, keys: {} });
 
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  // Detect touch device on mount
+  useEffect(() => {
+    const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    setIsTouchDevice(hasTouch);
+  }, []);
 
   // Setup Input Listeners
   useEffect(() => {
@@ -192,7 +199,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     <div ref={containerRef} className="relative w-full h-full flex flex-col items-center justify-center bg-black/50 rounded-xl overflow-hidden border border-zinc-700">
 
       {/* VIRTUAL CONTROLS OVERLAY - Only visible on touch/mobile */}
-      <div className="absolute inset-0 pointer-events-none z-10 sm:block hidden lg:hidden">
+      <div className={`absolute inset-0 pointer-events-none z-10 select-none touch-none ${isTouchDevice ? 'block' : 'hidden'}`}>
         {/* D-PAD Left */}
         <div className="absolute bottom-8 left-8 grid grid-cols-3 gap-2 pointer-events-auto opacity-40 hover:opacity-80 transition-opacity">
           <div />
