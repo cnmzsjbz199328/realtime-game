@@ -42,18 +42,15 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
     // ---------- Phase: BOOTING ----------
     useEffect(() => {
         if (phase !== 'BOOTING') return;
-        console.log('[Intro] BOOTING phase start');
         let idx = 0;
         const nextLog = () => {
             if (idx < BOOT_LOGS.length) {
                 setVisibleLogs(v => [...v, BOOT_LOGS[idx]]);
-                console.log('[Intro] log added:', BOOT_LOGS[idx]);
                 idx++;
                 const t = window.setTimeout(nextLog, 200 + Math.random() * 150);
                 timersRef.current.push(t);
             } else {
                 const t = window.setTimeout(() => {
-                    console.log('[Intro] Transition to LOADING');
                     setPhase('LOADING');
                 }, 300);
                 timersRef.current.push(t);
@@ -73,22 +70,16 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
     // ---------- Phase: LOADING (progress bar) ----------
     useEffect(() => {
         if (phase !== 'LOADING') return;
-        console.log('[Intro] LOADING phase start');
         const duration = 2500; // 2.5 s
         const start = performance.now();
         const step = (now: number) => {
             const elapsed = now - start;
             const pct = Math.min((elapsed / duration) * 100, 100);
             setProgress(pct);
-            // Log progress every 25 % for debugging
-            if (Math.round(pct) % 25 === 0) {
-                console.log('[Intro] progress', Math.round(pct) + '%');
-            }
             if (pct < 100) {
                 rafRef.current = requestAnimationFrame(step);
             } else {
                 const t = window.setTimeout(() => {
-                    console.log('[Intro] Transition to SHOW');
                     setPhase('SHOW');
                 }, 500);
                 timersRef.current.push(t);
@@ -103,9 +94,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
     // ---------- Phase: SHOW (brand displayed before exit) ----------
     useEffect(() => {
         if (phase !== 'SHOW') return;
-        console.log('[Intro] SHOW phase start (brand visible)');
         const t = window.setTimeout(() => {
-            console.log('[Intro] Transition to EXITING');
             setPhase('EXITING');
         }, 800); // keep brand visible ~0.8 s
         timersRef.current.push(t);
@@ -115,9 +104,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
     // ---------- Phase: EXITING (fade out) ----------
     useEffect(() => {
         if (phase !== 'EXITING') return;
-        console.log('[Intro] EXITING phase start');
         const t = window.setTimeout(() => {
-            console.log('[Intro] Intro complete, calling onComplete');
             onComplete();
         }, 800);
         timersRef.current.push(t);
