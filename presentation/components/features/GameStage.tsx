@@ -73,6 +73,7 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
                         <button onClick={() => setTab('play')} className={`px-4 py-2 rounded-full font-bold text-xs border ${tab === 'play' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>PLAY</button>
                         <button onClick={() => { setTab('code'); setViewMode('fragment'); }} className={`px-4 py-2 rounded-full font-bold text-xs border ${tab === 'code' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>SOURCE</button>
                         <button onClick={() => setShowRemixInput(!showRemixInput)} className={`px-4 py-2 rounded-full font-bold text-xs border ${showRemixInput ? 'bg-purple-500 text-white' : 'bg-black/40 text-purple-400 border-purple-500/30'}`}>✨ REMIX</button>
+                        <button onClick={() => setIsInfoExpanded(!isInfoExpanded)} className={`px-4 py-2 rounded-full font-bold text-xs border ${isInfoExpanded ? 'bg-zinc-700 text-white border-zinc-500' : 'bg-black/40 text-gray-400 border-white/10'}`}>ℹ️ INFO</button>
                     </div>
 
                     {showRemixInput && (

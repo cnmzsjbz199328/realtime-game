@@ -9,33 +9,36 @@ interface StageInfoPanelProps {
 
 export const StageInfoPanel: React.FC<StageInfoPanelProps> = ({ game, isExpanded, onToggle }) => {
     return (
-        <div className="absolute bottom-6 left-6 z-40 max-w-md pointer-events-auto transition-all duration-500">
-            <div
-                className={`
-                    relative transition-all duration-500 ease-in-out cursor-pointer overflow-hidden
-                    ${isExpanded
-                        ? 'bg-black/90 backdrop-blur-md p-5 rounded-r-xl shadow-2xl border-l-4 border-brand-cyan translate-y-0'
-                        : 'bg-transparent p-2 border-l-0 translate-y-2'
-                    }
-                `}
-                onClick={onToggle}
-            >
-                <div className="flex items-center gap-3">
-                    <h2 className={`font-bold text-white tracking-tight transition-all duration-300 drop-shadow-md ${isExpanded ? 'text-xl' : 'text-sm opacity-50 hover:opacity-100'}`}>
+        <div
+            className={`absolute top-[72px] left-6 z-40 max-w-md pointer-events-auto transition-all duration-500 ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+                }`}
+        >
+            <div className="bg-black/80 backdrop-blur-xl p-5 rounded-2xl shadow-2xl border border-white/10 ring-1 ring-white/5">
+                <div className="flex items-center justify-between gap-4 mb-3">
+                    <h2 className="font-bold text-white text-xl tracking-tight">
                         {game.title}
                     </h2>
-                    {!isExpanded && (
-                        <span className="text-[10px] text-brand-cyan uppercase tracking-widest opacity-50 drop-shadow-sm">Info</span>
-                    )}
+                    <button
+                        onClick={onToggle}
+                        className="p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
                 </div>
 
-                <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isExpanded ? 'max-h-40 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'}`}>
+                <div className="space-y-4">
                     <p className="text-sm text-gray-300 leading-relaxed">
                         {game.description}
                     </p>
-                    <div className="mt-3 flex gap-2 text-[10px] font-mono text-brand-cyan opacity-80">
-                        <span className="bg-brand-cyan/10 px-1.5 py-0.5 rounded border border-brand-cyan/20">WASD/ARROWS</span>
-                        <span className="bg-brand-cyan/10 px-1.5 py-0.5 rounded border border-brand-cyan/20">SPACE/CLICK</span>
+
+                    <div className="flex flex-col gap-2">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Controls</span>
+                        <div className="flex gap-2 text-[10px] font-mono text-brand-cyan">
+                            <span className="bg-brand-cyan/10 px-2 py-1 rounded border border-brand-cyan/20">WASD/ARROWS</span>
+                            <span className="bg-brand-cyan/10 px-2 py-1 rounded border border-brand-cyan/20">SPACE/CLICK</span>
+                        </div>
                     </div>
                 </div>
             </div>
