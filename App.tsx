@@ -5,6 +5,7 @@ import { GameStage } from './presentation/components/features/GameStage';
 import { Leaderboard } from './presentation/components/features/Leaderboard';
 import { TerminalLogs } from './presentation/components/features/TerminalLogs';
 import { FlipContainer } from './presentation/components/layout/FlipContainer';
+import { IntroSequence } from './presentation/components/features/IntroSequence';
 import { useAgentWorkflow } from './application/useAgentWorkflow';
 import { useGameCollection } from './application/useGameCollection';
 import { FrontendGameGenerator, FrontendFixer } from './infrastructure/ai/FrontendAIService';
@@ -22,6 +23,7 @@ const gameRepo = new PostgresGameRepository();
 console.log('[APP] Frontend services initialized (backend AI logic via API)');
 
 function App() {
+  const [showIntro, setShowIntro] = useState(true);
   const [activeTab, setActiveTab] = useState<'home' | 'leaderboard'>('home');
 
   // Inject Services into Application Logic
@@ -49,6 +51,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#020C10] text-[#E0F2F1] flex flex-col font-sans selection:bg-brand-cyan/30 selection:text-white">
+      {/* Intro Sequence Overlay */}
+      {showIntro && <IntroSequence onComplete={() => setShowIntro(false)} />}
+
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
 
       <main className="flex-1 w-full flex flex-col items-center">
