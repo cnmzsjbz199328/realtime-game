@@ -137,7 +137,7 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
                     >
                         {/* Title with Glitch Effect */}
                         <h1
-                            className="glitch-wrapper relative text-6xl md:text-8xl font-black tracking-tighter text-brand-cyan neon-text"
+                            className="glitch-wrapper relative text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter text-brand-cyan neon-text"
                             data-text="GENGAME STUDIO"
                         >
                             GENGAME STUDIO

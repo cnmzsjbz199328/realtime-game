@@ -69,11 +69,11 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
             {status === AgentStatus.DEPLOYED && game ? (
                 <div className="w-full h-full relative overflow-hidden bg-black rounded-xl border border-brand-cyan/20 flex flex-col">
                     {/* TABS */}
-                    <div className="absolute top-6 left-6 z-50 flex gap-2">
-                        <button onClick={() => setTab('play')} className={`px-4 py-2 rounded-full font-bold text-xs border ${tab === 'play' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>PLAY</button>
-                        <button onClick={() => { setTab('code'); setViewMode('fragment'); }} className={`px-4 py-2 rounded-full font-bold text-xs border ${tab === 'code' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>SOURCE</button>
-                        <button onClick={() => setShowRemixInput(!showRemixInput)} className={`px-4 py-2 rounded-full font-bold text-xs border ${showRemixInput ? 'bg-purple-500 text-white' : 'bg-black/40 text-purple-400 border-purple-500/30'}`}>✨ REMIX</button>
-                        <button onClick={() => setIsInfoExpanded(!isInfoExpanded)} className={`px-4 py-2 rounded-full font-bold text-xs border ${isInfoExpanded ? 'bg-zinc-700 text-white border-zinc-500' : 'bg-black/40 text-gray-400 border-white/10'}`}>ℹ️ INFO</button>
+                    <div className="absolute top-6 left-6 right-6 z-50 flex gap-2 flex-wrap sm:flex-nowrap">
+                        <button onClick={() => setTab('play')} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${tab === 'play' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>PLAY</button>
+                        <button onClick={() => { setTab('code'); setViewMode('fragment'); }} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${tab === 'code' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>SOURCE</button>
+                        <button onClick={() => setShowRemixInput(!showRemixInput)} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${showRemixInput ? 'bg-purple-500 text-white' : 'bg-black/40 text-purple-400 border-purple-500/30'}`}>✨ REMIX</button>
+                        <button onClick={() => setIsInfoExpanded(!isInfoExpanded)} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${isInfoExpanded ? 'bg-zinc-700 text-white border-zinc-500' : 'bg-black/40 text-gray-400 border-white/10'}`}>ℹ️ INFO</button>
                     </div>
 
                     {showRemixInput && (

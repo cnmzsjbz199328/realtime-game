@@ -50,13 +50,13 @@ function App() {
   const isFlipped = status === AgentStatus.DEPLOYED;
 
   return (
-    <div className="min-h-screen bg-[#020C10] text-[#E0F2F1] flex flex-col font-sans selection:bg-brand-cyan/30 selection:text-white">
+    <div className="min-h-screen bg-[#020C10] text-[#E0F2F1] flex flex-col font-sans selection:bg-brand-cyan/30 selection:text-white overflow-x-hidden">
       {/* Intro Sequence Overlay */}
       {showIntro && <IntroSequence onComplete={() => setShowIntro(false)} />}
 
       <Header activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <main className="flex-1 w-full flex flex-col items-center">
+      <main className="flex-1 w-full flex flex-col items-center px-4 md:px-6">
 
         {/* HOME TAB */}
         <div className={`w-full transition-opacity duration-500 ${activeTab === 'home' ? 'opacity-100 flex' : 'opacity-0 hidden'}`}>

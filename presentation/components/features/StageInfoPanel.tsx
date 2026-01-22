@@ -10,7 +10,7 @@ interface StageInfoPanelProps {
 export const StageInfoPanel: React.FC<StageInfoPanelProps> = ({ game, isExpanded, onToggle }) => {
     return (
         <div
-            className={`absolute top-[72px] left-6 z-40 max-w-md pointer-events-auto transition-all duration-500 ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+            className={`absolute top-[72px] left-6 right-6 z-40 max-w-[calc(100vw-48px)] sm:max-w-md pointer-events-auto transition-all duration-500 ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
                 }`}
         >
             <div className="bg-black/80 backdrop-blur-xl p-5 rounded-2xl shadow-2xl border border-white/10 ring-1 ring-white/5">
