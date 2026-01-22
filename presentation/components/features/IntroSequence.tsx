@@ -131,18 +131,14 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
                 )}
                 {/* LOADING / SHOW / EXITING */}
                 {(phase === 'LOADING' || phase === 'SHOW' || phase === 'EXITING') && (
-                    <div
-                        className={`w-full flex flex-col items-center space-y-8 ${phase === 'LOADING' ? 'loading-fade-in' : phase === 'EXITING' ? 'loading-fade-out' : ''
-                            }`}
-                    >
-                        {/* Title with Glitch Effect */}
+                    <>
                         <h1
-                            className="glitch-wrapper relative text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter text-brand-cyan neon-text"
+                            className="glitch-wrapper relative text-4xl sm:text-6xl md:text-8xl font-black tracking-tighter text-brand-cyan neon-text mb-8"
                             data-text="GENGAME STUDIO"
                         >
                             GENGAME STUDIO
                         </h1>
-                        <p className="text-base text-zinc-400 font-mono tracking-wider">
+                        <p className="text-base text-zinc-400 font-mono tracking-wider mb-8">
                             {phase === 'LOADING' ? 'SYSTEM LOADING...' : 'READY'}
                         </p>
                         <div className="w-full max-w-2xl h-2 bg-zinc-900 rounded-full overflow-hidden">
@@ -151,9 +147,9 @@ export const IntroSequence: React.FC<IntroSequenceProps> = ({ onComplete }) => {
                                 style={{ width: `${progress}%`, boxShadow: '0 0 20px rgba(0, 229, 255, 0.6)' }}
                             />
                         </div>
-                        <p className="text-sm text-brand-cyan font-mono">{Math.floor(progress)}%</p>
-                        <p className="text-sm text-zinc-700 font-mono mt-8">Proprietary Neural Interface v2.4.1</p>
-                    </div>
+                        <p className="text-sm text-brand-cyan font-mono mt-4">{Math.floor(progress)}%</p>
+                        <p className="text-sm text-zinc-700 font-mono mt-12">Proprietary Neural Interface v2.4.1</p>
+                    </>
                 )}
             </div>
         </div>

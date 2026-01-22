@@ -73,30 +73,22 @@ function App() {
               </div>
             }
             back={
-              <div className="w-full h-full flex flex-col">
-                <div className="flex-1 w-full bg-black/50 relative overflow-hidden">
-                  <GameStage
-                    status={status}
-                    game={game}
-                    onCrash={handleCrash}
-                    onSave={async (g) => {
-                      const saved = await saveGame(g);
-                      setGame(saved);
-                    }}
-                    onUpdateCode={(code) => {
-                      if (game) {
-                        // "Fork" behavior:
-                        // When code is edited, we strip the 'id' (if any) so that the next Save
-                        // creates a NEW record instead of updating/liking the old one.
-                        // We cast to any to safely destructure potential extra properties like 'id'.
-                        const { id, likes, timestamp, ...rest } = game as any;
-                        setGame({ ...rest, code });
-                      }
-                    }}
-                    onBack={handleBackToTerminal}
-                  />
-                </div>
-              </div>
+              <GameStage
+                status={status}
+                game={game}
+                onCrash={handleCrash}
+                onSave={async (g) => {
+                  const saved = await saveGame(g);
+                  setGame(saved);
+                }}
+                onUpdateCode={(code) => {
+                  if (game) {
+                    const { id, likes, timestamp, ...rest } = game as any;
+                    setGame({ ...rest, code });
+                  }
+                }}
+                onBack={handleBackToTerminal}
+              />
             }
           />
         </div>

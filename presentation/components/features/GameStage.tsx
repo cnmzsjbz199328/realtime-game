@@ -70,10 +70,23 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
                 <div className="w-full h-full relative overflow-hidden bg-black rounded-xl border border-brand-cyan/20 flex flex-col">
                     {/* TABS */}
                     <div className="absolute top-6 left-6 right-6 z-50 flex gap-2 flex-wrap sm:flex-nowrap">
-                        <button onClick={() => setTab('play')} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${tab === 'play' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>PLAY</button>
-                        <button onClick={() => { setTab('code'); setViewMode('fragment'); }} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${tab === 'code' ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/40 text-gray-400 border-white/10'}`}>SOURCE</button>
-                        <button onClick={() => setShowRemixInput(!showRemixInput)} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${showRemixInput ? 'bg-purple-500 text-white' : 'bg-black/40 text-purple-400 border-purple-500/30'}`}>✨ REMIX</button>
-                        <button onClick={() => setIsInfoExpanded(!isInfoExpanded)} className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap ${isInfoExpanded ? 'bg-zinc-700 text-white border-zinc-500' : 'bg-black/40 text-gray-400 border-white/10'}`}>ℹ️ INFO</button>
+                        {[
+                            { id: 'play', label: 'PLAY', active: tab === 'play', onClick: () => setTab('play') },
+                            { id: 'code', label: 'SOURCE', active: tab === 'code', onClick: () => { setTab('code'); setViewMode('fragment'); } },
+                            { id: 'remix', label: '✨ REMIX', active: showRemixInput, activeClass: 'bg-purple-500 text-white border-purple-500', inactiveClass: 'bg-black/40 text-purple-400 border-purple-500/30', onClick: () => setShowRemixInput(!showRemixInput) },
+                            { id: 'info', label: 'ℹ️ INFO', active: isInfoExpanded, activeClass: 'bg-zinc-700 text-white border-zinc-500', onClick: () => setIsInfoExpanded(!isInfoExpanded) }
+                        ].map(btn => (
+                            <button
+                                key={btn.id}
+                                onClick={btn.onClick}
+                                className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap transition-all ${btn.active
+                                        ? (btn.activeClass || 'bg-brand-cyan text-black border-brand-cyan')
+                                        : (btn.inactiveClass || 'bg-black/40 text-gray-400 border-white/10')
+                                    }`}
+                            >
+                                {btn.label}
+                            </button>
+                        ))}
                     </div>
 
                     {showRemixInput && (
