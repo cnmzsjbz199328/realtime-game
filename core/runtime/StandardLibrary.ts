@@ -50,12 +50,20 @@ export class Vector {
         return this.multiply(s);
     }
 
+    mult(s: number): Vector { // Alias (p5.js style)
+        return this.multiply(s);
+    }
+
     divide(s: number): Vector {
         if (s !== 0) {
             this.x /= s;
             this.y /= s;
         }
         return this;
+    }
+
+    div(s: number): Vector { // Alias (p5.js style)
+        return this.divide(s);
     }
 
     // --- Magnitude & Normalization ---
@@ -213,7 +221,9 @@ class Vector {
     multiply(s) { this.x *= s; this.y *= s; return this; }
     multiplyScalar(s) { return this.multiply(s); }
     scale(s) { return this.multiply(s); }
+    mult(s) { return this.multiply(s); }
     divide(s) { if (s !== 0) { this.x /= s; this.y /= s; } return this; }
+    div(s) { return this.divide(s); }
 
     // Magnitude & Normalization
     mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
