@@ -13,7 +13,7 @@ export const COLORS = {
     TEXT: '#ffffff'
 };
 
-// 2. VECTOR CLASS
+// 2. VECTOR CLASS (Comprehensive API)
 export class Vector {
     x: number;
     y: number;
@@ -23,6 +23,7 @@ export class Vector {
         this.y = y;
     }
 
+    // --- Basic Arithmetic ---
     add(v: { x: number, y: number }): Vector {
         this.x += v.x;
         this.y += v.y;
@@ -35,18 +36,18 @@ export class Vector {
         return this;
     }
 
-    multiplyScalar(s: number): Vector {
+    multiply(s: number): Vector { // Standard multiply
         this.x *= s;
         this.y *= s;
         return this;
     }
 
-    scale(s: number): Vector {
-        return this.multiplyScalar(s);
+    multiplyScalar(s: number): Vector { // Alias
+        return this.multiply(s);
     }
 
-    multiply(s: number): Vector {
-        return this.multiplyScalar(s);
+    scale(s: number): Vector { // Alias
+        return this.multiply(s);
     }
 
     divide(s: number): Vector {
@@ -57,21 +58,76 @@ export class Vector {
         return this;
     }
 
+    // --- Magnitude & Normalization ---
     mag(): number {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
+    magSq(): number { // Performance optimization
+        return this.x * this.x + this.y * this.y;
+    }
+
+    normalize(): Vector {
+        const m = this.mag();
+        if (m > 0) this.divide(m);
+        return this;
+    }
+
+    setMag(n: number): Vector {
+        return this.normalize().multiply(n);
+    }
+
+    limit(max: number): Vector {
+        if (this.magSq() > max * max) {
+            this.setMag(max);
+        }
+        return this;
+    }
+
+    // --- Direction & Rotation ---
+    heading(): number {
+        return Math.atan2(this.y, this.x);
+    }
+
+    rotate(angle: number): Vector {
+        const newHeading = this.heading() + angle;
+        const mag = this.mag();
+        this.x = Math.cos(newHeading) * mag;
+        this.y = Math.sin(newHeading) * mag;
+        return this;
+    }
+
+    // --- Relationship ---
     dist(v: { x: number, y: number }): number {
         const dx = this.x - v.x;
         const dy = this.y - v.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    normalize(): Vector {
-        const m = this.mag();
-        if (m > 0) {
-            this.divide(m);
-        }
+    distSq(v: { x: number, y: number }): number {
+        const dx = this.x - v.x;
+        const dy = this.y - v.y;
+        return dx * dx + dy * dy;
+    }
+
+    dot(v: { x: number, y: number }): number {
+        return this.x * v.x + this.y * v.y;
+    }
+
+    cross(v: { x: number, y: number }): number { // 2D Cross product (Z-component)
+        return this.x * v.y - this.y * v.x;
+    }
+
+    angleBetween(v: Vector): number {
+        const dot = this.dot(v);
+        // Clamp to -1..1 to handle float errors
+        const val = Math.max(-1, Math.min(1, dot / (this.mag() * v.mag())));
+        return Math.acos(val);
+    }
+
+    lerp(v: Vector, amt: number): Vector {
+        this.x += (v.x - this.x) * amt;
+        this.y += (v.y - this.y) * amt;
         return this;
     }
 
@@ -79,10 +135,28 @@ export class Vector {
         return new Vector(this.x, this.y);
     }
 
+    // --- Static Utilities ---
     static distance(v1: { x: number, y: number }, v2: { x: number, y: number }): number {
         const dx = v1.x - v2.x;
         const dy = v1.y - v2.y;
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    static add(v1: Vector, v2: Vector): Vector {
+        return new Vector(v1.x + v2.x, v1.y + v2.y);
+    }
+
+    static sub(v1: Vector, v2: Vector): Vector {
+        return new Vector(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    static random2D(): Vector {
+        const angle = Math.random() * Math.PI * 2;
+        return new Vector(Math.cos(angle), Math.sin(angle));
+    }
+
+    static fromAngle(angle: number, length: number = 1): Vector {
+        return new Vector(length * Math.cos(angle), length * Math.sin(angle));
     }
 }
 
@@ -133,60 +207,72 @@ class Vector {
         this.y = y;
     }
     
-    add(v) {
-        this.x += v.x;
-        this.y += v.y;
-        return this;
+    // Basic Arithmetic
+    add(v) { this.x += v.x; this.y += v.y; return this; }
+    sub(v) { this.x -= v.x; this.y -= v.y; return this; }
+    multiply(s) { this.x *= s; this.y *= s; return this; }
+    multiplyScalar(s) { return this.multiply(s); }
+    scale(s) { return this.multiply(s); }
+    divide(s) { if (s !== 0) { this.x /= s; this.y /= s; } return this; }
+
+    // Magnitude & Normalization
+    mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+    magSq() { return this.x * this.x + this.y * this.y; }
+    
+    normalize() { 
+        const m = this.mag(); 
+        if (m > 0) this.divide(m); 
+        return this; 
     }
     
-    sub(v) {
-        this.x -= v.x;
-        this.y -= v.y;
-        return this;
-    }
+    setMag(n) { return this.normalize().multiply(n); }
+    limit(max) { if (this.magSq() > max * max) this.setMag(max); return this; }
     
-    multiplyScalar(s) {
-        this.x *= s;
-        this.y *= s;
+    // Direction & Rotation
+    heading() { return Math.atan2(this.y, this.x); }
+    rotate(angle) {
+        const newHeading = this.heading() + angle;
+        const mag = this.mag();
+        this.x = Math.cos(newHeading) * mag;
+        this.y = Math.sin(newHeading) * mag;
         return this;
-    }
-    
-    scale(s) {
-        return this.multiplyScalar(s);
     }
 
-    multiply(s) {
-        return this.multiplyScalar(s);
+    // Relationship
+    dist(v) { 
+        const dx = this.x - v.x; 
+        const dy = this.y - v.y; 
+        return Math.sqrt(dx * dx + dy * dy); 
     }
-
-    divide(s) {
-        if(s!==0) { this.x /= s; this.y /= s; } 
+    distSq(v) {
+        const dx = this.x - v.x; 
+        const dy = this.y - v.y; 
+        return dx * dx + dy * dy;
+    }
+    
+    dot(v) { return this.x * v.x + this.y * v.y; }
+    cross(v) { return this.x * v.y - this.y * v.x; }
+    
+    angleBetween(v) {
+        const dot = this.dot(v);
+        const val = Math.max(-1, Math.min(1, dot / (this.mag() * v.mag())));
+        return Math.acos(val);
+    }
+    
+    lerp(v, amt) {
+        this.x += (v.x - this.x) * amt;
+        this.y += (v.y - this.y) * amt;
         return this;
     }
 
-    mag() {
-        return Math.sqrt(this.x*this.x + this.y*this.y);
-    }
+    copy() { return new Vector(this.x, this.y); }
     
-    dist(v) {
-        const dx = this.x - v.x;
-        const dy = this.y - v.y;
-        return Math.sqrt(dx*dx + dy*dy);
-    }
-
-    normalize() {
-        const m = this.mag();
-        if(m>0) this.divide(m);
-        return this;
-    }
-    
-    copy() {
-        return new Vector(this.x, this.y);
-    }
-    
-    static distance(v1, v2) {
-        return Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2));
-    }
+    // Static Utilities
+    static distance(v1, v2) { return Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2)); }
+    static add(v1, v2) { return new Vector(v1.x + v2.x, v1.y + v2.y); }
+    static sub(v1, v2) { return new Vector(v1.x - v2.x, v1.y - v2.y); }
+    static random2D() { const a = Math.random() * Math.PI * 2; return new Vector(Math.cos(a), Math.sin(a)); }
+    static fromAngle(angle, length = 1) { return new Vector(length * Math.cos(angle), length * Math.sin(angle)); }
 }
 
 class GameObject {
