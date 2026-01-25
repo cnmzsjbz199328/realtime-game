@@ -41,11 +41,36 @@ export class Vector {
         return this;
     }
 
+    scale(s: number): Vector {
+        return this.multiplyScalar(s);
+    }
+
+    multiply(s: number): Vector {
+        return this.multiplyScalar(s);
+    }
+
+    divide(s: number): Vector {
+        if (s !== 0) {
+            this.x /= s;
+            this.y /= s;
+        }
+        return this;
+    }
+
+    mag(): number {
+        return Math.sqrt(this.x * this.x + this.y * this.y);
+    }
+
+    dist(v: { x: number, y: number }): number {
+        const dx = this.x - v.x;
+        const dy = this.y - v.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
     normalize(): Vector {
-        const len = Math.sqrt(this.x * this.x + this.y * this.y);
-        if (len > 0) {
-            this.x /= len;
-            this.y /= len;
+        const m = this.mag();
+        if (m > 0) {
+            this.divide(m);
         }
         return this;
     }
@@ -126,12 +151,32 @@ class Vector {
         return this;
     }
     
+    scale(s) {
+        return this.multiplyScalar(s);
+    }
+
+    multiply(s) {
+        return this.multiplyScalar(s);
+    }
+
+    divide(s) {
+        if(s!==0) { this.x /= s; this.y /= s; } 
+        return this;
+    }
+
+    mag() {
+        return Math.sqrt(this.x*this.x + this.y*this.y);
+    }
+    
+    dist(v) {
+        const dx = this.x - v.x;
+        const dy = this.y - v.y;
+        return Math.sqrt(dx*dx + dy*dy);
+    }
+
     normalize() {
-        const len = Math.sqrt(this.x * this.x + this.y * this.y);
-        if (len > 0) {
-            this.x /= len;
-            this.y /= len;
-        }
+        const m = this.mag();
+        if(m>0) this.divide(m);
         return this;
     }
     
