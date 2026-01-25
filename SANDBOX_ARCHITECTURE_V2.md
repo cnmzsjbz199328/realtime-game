@@ -171,7 +171,7 @@ CODE:
     const codeMatch = response.match(/CODE:[\s\S]*?```(?:javascript|js)?\s*([\s\S]*?)```/);
     ```
 3.  **Store** these values in a state object (e.g., `currentGameMetadata`).
-4.  **Auto-Fill**: Pass these values to your `SaveGameModal` so the user doesn't have to type them manually.
+4.  **AutoFill**: Pass these values to your `SaveGameModal` so the user doesn't have to type them manually.
 
 ### 4.3 Checklist
 1.  [ ] **Update `createHostHTML`**: Inject `StandardLibrary` only when `Vector`/`COLORS` are missing in user code.
