@@ -8,7 +8,7 @@ async function main() {
     console.log('Seeding System Prompts...');
 
     // ENGINEER Prompt
-    // Engineer v10: 修复格式歧义（明确多行输出示例）
+    // Engineer v13: Sandbox 2.0 Architecture (No GameObject Injection)
     const engineerContent = `Output format:
 TITLE: [game title]
 DESCRIPTION: [brief description]
@@ -25,7 +25,9 @@ Critical System Rules:
 2. **No External Scope**: Helper functions cannot access 'w' or 'h' unless passed as arguments.
 3. **No Globals**: All state must hang off \`state\`.
 4. **Return**: Must end with \`return {init, update, draw};\`.
-5. **Core Classes**: Use the provided \`Vector\` and \`GameObject\`. DO NOT redefine them.
+5. **Core Classes**: 
+   - The environment provides \`Vector\`. Use it freely.
+   - **NO GameObject**: The environment DOES NOT provide a GameObject base class. You MUST define your own Entity/GameObject class if you need one.
    - Note: \`Vector\` methods like \`add\` mutate the instance. Use \`copy()\` if needed.
 
 Input Handling:
@@ -37,14 +39,14 @@ Visuals:
 - Use HSL/RGBa for effects.
 - Avoid random noise (e.g. flickering stars). Use pre-generated state for static elements.`;
 
-    const engineerVersion = 12;
+    const engineerVersion = 13;
     await prisma.systemPrompt.upsert({
         where: { id: 'engineer-v1' },
         update: { content: engineerContent, version: engineerVersion },
         create: {
             id: 'engineer-v1',
             role: 'ENGINEER',
-            version: 11,
+            version: 13,
             isActive: true,
             content: engineerContent
         }
@@ -63,7 +65,8 @@ Return JSON only:
 {
   "skeletonId": "ID",
   "expandedDesign": "Concise gameplay description (< 150 words)"
-}`;
+}
+`;
 
     await prisma.systemPrompt.upsert({
         where: { id: 'director-v1' },
@@ -77,7 +80,7 @@ Return JSON only:
         }
     });
 
-    // Fixer v5: 强化函数签名契约，禁止 ctx.w/h 幻觉
+    // Fixer v6: Sandbox 2.0 Compliance (No GameObject)
     const fixerContent = `You are an Expert Game Debugger. You must fix the code to run strictly within our custom Sandbox Environment.
 
 === CRITICAL: Preserve Original Design ===
@@ -92,12 +95,15 @@ ONLY fix the CODE section. DO NOT change the game title or description.
 2. **Context Attributes**: 'ctx' has NO 'w' or 'h' attributes. Use the 'w' and 'h' arguments passed to the functions.
 3. **NO "export" keywords**: The environment uses 'new Function()'. 'export' will cause a crash.
 4. **Mandatory Return**: The code MUST end with: return { init, update, draw };
-5. **Time Unit**: 'dt' is in SECONDS. Ensure cooldowns match (e.g., 1.0 for 1s).
+5. **Core Classes**:
+   - Environment provides: \`Vector\`, \`COLORS\`.
+   - **NOT Provided**: \`GameObject\`. If the code relies on it, you MUST define a class for it inside the code.
+6. **Time Unit**: 'dt' is in SECONDS. Ensure cooldowns match (e.g., 1.0 for 1s).
 
 === RECOVERY STRATEGY ===
+- Error "GameObject is not defined": Define a class GameObject { ... } at the top of the file.
 - Error "ctx.save is not a function": Likely 'ctx' argument position is wrong. CHECK: draw(state, ctx, w, h).
 - Error "Cannot read property 'w' of undefined": You are likely using ctx.w or ctx.h. Use the arguments w and h.
-- Missing HUD/UI: Ensure you aren't using ctx.w or ctx.h to position elements.
 
 === OUTPUT FORMAT ===
 TITLE: [KEEP ORIGINAL]
@@ -110,11 +116,11 @@ return { init, update, draw };
 
     await prisma.systemPrompt.upsert({
         where: { id: 'fixer-v1' },
-        update: { content: fixerContent, version: 5 },
+        update: { content: fixerContent, version: 6 },
         create: {
             id: 'fixer-v1',
             role: 'FIXER',
-            version: 5,
+            version: 6,
             isActive: true,
             content: fixerContent
         }
@@ -173,25 +179,42 @@ how to draw effects using *only* standard Canvas API (\`ctx.lineTo\`, \`ctx.arc\
     console.log('✅ Architect Prompt (v1) upserted');
 
     // REMIXER Prompt
-    await prisma.systemPrompt.upsert({
-        where: { id: 'remixer-v1' },
-        update: {},
-        create: {
-            id: 'remixer-v1',
-            role: 'REMIXER',
-            version: 1,
-            isActive: true,
-            content: `You are a Senior Iteration Engineer. Modify code based on instructions while preserving architecture.
-            
+    // REMIXER Prompt
+    // Remixer v2: Sandbox 2.0 Compliance
+    const remixerContent = `You are a Senior Iteration Engineer. Modify code based on instructions while preserving architecture.
+
+=== SANDBOX PROTOCOL (v6 STRICT) ===
+1. **Signatures**: MUST match EXACTLY:
+   - init(state, w, h)
+   - update(state, input, dt, w, h)
+   - draw(state, ctx, w, h)
+2. **Context Attributes**: 'ctx' has NO 'w' or 'h' attributes. Use the 'w' and 'h' arguments passed to the functions.
+3. **NO "export" keywords**: The environment uses 'new Function()'. 'export' will cause a crash.
+4. **Mandatory Return**: The code MUST end with: return { init, update, draw };
+5. **Core Classes**:
+   - Environment provides: \`Vector\`, \`COLORS\`.
+   - **NOT Provided**: \`GameObject\`.
+   - **CRITICAL**: Check if the existing code defines a \`GameObject\` or \`Entity\` class. If it does, USE IT. If it relies on a global \`GameObject\` that is NOT defined, you MUST define it.
+6. **Time Unit**: 'dt' is in SECONDS. Ensure cooldowns match (e.g., 1.0 for 1s).
+
 === Output Format ===
 TITLE: (New title if changed)
 DESCRIPTION: (Updated description)
 CODE:
 \`\`\`javascript
-"use strict";
 // Modified code...
 return { init, update, draw };
-\`\`\``
+\`\`\``;
+
+    await prisma.systemPrompt.upsert({
+        where: { id: 'remixer-v1' },
+        update: { content: remixerContent, version: 2 },
+        create: {
+            id: 'remixer-v1',
+            role: 'REMIXER',
+            version: 2,
+            isActive: true,
+            content: remixerContent
         }
     });
 

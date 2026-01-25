@@ -133,25 +133,67 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     lastTimeRef.current = performance.now();
 
     let gameInterface: GameInterface;
+    let isActive = true;
 
-    try {
-      const createGame = new Function(gameDef.code);
-      const result = createGame();
+    // Use async IIFE to allow awaiting the standard library
+    const initGame = async () => {
+      try {
+        const { Vector, COLORS } = await import('../core/runtime/StandardLibrary');
 
-      if (!result || typeof result.init !== 'function' || typeof result.update !== 'function' || typeof result.draw !== 'function') {
-        throw new Error("Generated code did not return valid game interface (modules missing: init, update, or draw)");
+        if (!isActive) return;
+
+        // SANDBOX COMPATIBILITY LAYER
+        // ----------------------------------------------------
+        // Detailed analysis of the code to prevent naming conflicts.
+        // If the AI defined 'class Vector' or 'const COLORS', we MUST NOT inject our own,
+        // otherwise a SyntaxError (Identifier already declared) will occur.
+
+        const code = gameDef.code;
+        const hasVectorRedef = /class\s+Vector\b|const\s+Vector\b|var\s+Vector\b|function\s+Vector\b/.test(code);
+        const hasColorsRedef = /const\s+COLORS\b|var\s+COLORS\b|let\s+COLORS\b/.test(code);
+
+        // Build injection context dynamically
+        const argNames = [];
+        const argValues = [];
+
+        // 1. Vector: Inject only if not redefined
+        if (!hasVectorRedef) {
+          argNames.push('Vector');
+          argValues.push(Vector);
+        }
+
+        // 2. COLORS: Inject only if not redefined
+        if (!hasColorsRedef) {
+          argNames.push('COLORS');
+          argValues.push(COLORS);
+        }
+
+        // 3. GameObject: REMOVED from injection (Option B)
+        // AI is expected to define its own base class if needed to avoid inheritance conflicts.
+
+        // Create the sandbox function with dynamic arguments
+        // 'GameObject' is purposefully omitted.
+        const createGame = new Function(...argNames, code);
+        const result = createGame(...argValues);
+
+        if (!result || typeof result.init !== 'function' || typeof result.update !== 'function' || typeof result.draw !== 'function') {
+          throw new Error("Generated code missing init/update/draw");
+        }
+
+        gameInterface = result as GameInterface;
+        gameInterface.init(stateRef.current, canvas.width, canvas.height);
+
+        // Start loop only after init is ready
+        requestRef.current = requestAnimationFrame(animate);
+
+      } catch (e: any) {
+        if (!isActive) return;
+        const msg = `Setup Error: ${e.message}`;
+        console.error(msg);
+        setRuntimeError(msg);
+        onCrash(msg);
       }
-
-      gameInterface = result as GameInterface;
-      gameInterface.init(stateRef.current, canvas.width, canvas.height);
-
-    } catch (e: any) {
-      const msg = `Compilation/Setup Error: ${e.message}`;
-      console.error(msg);
-      setRuntimeError(msg);
-      onCrash(msg);
-      return;
-    }
+    };
 
     const animate = (time: number) => {
       try {
@@ -159,11 +201,10 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
         lastTimeRef.current = time;
         const dt = Math.min(deltaTime, 0.1);
 
-        // Update with full dimensions
-        gameInterface.update(stateRef.current, inputRef.current, dt, canvas.width, canvas.height);
-
-        // Draw
-        gameInterface.draw(stateRef.current, ctx, canvas.width, canvas.height);
+        if (gameInterface) {
+          gameInterface.update(stateRef.current, inputRef.current, dt, canvas.width, canvas.height);
+          gameInterface.draw(stateRef.current, ctx, canvas.width, canvas.height);
+        }
 
         requestRef.current = requestAnimationFrame(animate);
       } catch (e: any) {
@@ -171,14 +212,16 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
         console.error(msg);
         setRuntimeError(msg);
         onCrash(msg);
-        if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
       }
     };
 
-    requestRef.current = requestAnimationFrame(animate);
+    // Kick off initialization
+    initGame();
 
     return () => {
-      if (requestRef.current !== null) cancelAnimationFrame(requestRef.current);
+      isActive = false;
+      if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
   }, [gameDef, onCrash]);
 

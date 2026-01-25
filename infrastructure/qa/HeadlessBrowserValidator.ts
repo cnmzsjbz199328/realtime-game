@@ -31,9 +31,48 @@ export class HeadlessBrowserValidator implements IGameValidator {
             // 2. Compilation Check
             let gameInterface: GameInterface;
             try {
+                // SANDBOX COMPATIBILITY LAYER (Validator)
+                // ----------------------------------------------------
+                const code = gameDef.code;
+                const hasVectorRedef = /class\s+Vector\b|const\s+Vector\b|var\s+Vector\b|function\s+Vector\b/.test(code);
+                const hasColorsRedef = /const\s+COLORS\b|var\s+COLORS\b|let\s+COLORS\b/.test(code);
+
+                const argNames = [];
+                const argValues = [];
+
+                if (!hasVectorRedef) {
+                    // Define Mock Vector locally if needed
+                    class MockVector {
+                        x: number; y: number;
+                        constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+                        add(v: any) { this.x += v.x; this.y += v.y; return this; }
+                        sub(v: any) { this.x -= v.x; this.y -= v.y; return this; }
+                        multiplyScalar(s: number) { this.x *= s; this.y *= s; return this; }
+                        normalize() {
+                            const len = Math.sqrt(this.x * this.x + this.y * this.y);
+                            if (len > 0) { this.x /= len; this.y /= len; }
+                            return this;
+                        }
+                        copy() { return new MockVector(this.x, this.y); }
+                        static distance(v1: any, v2: any) { return Math.sqrt((v1.x - v2.x) ** 2 + (v1.y - v2.y) ** 2); }
+                    }
+                    argNames.push('Vector');
+                    argValues.push(MockVector);
+                }
+
+                if (!hasColorsRedef) {
+                    const MOCK_COLORS = {
+                        BG: '#000000', PLAYER: '#ffffff', ENEMY: '#ff0000', ACCENT: '#ffff00', TEXT: '#ffffff'
+                    };
+                    argNames.push('COLORS');
+                    argValues.push(MOCK_COLORS);
+                }
+
                 // eslint-disable-next-line no-new-func
-                const createGame = new Function(gameDef.code);
-                const result = createGame();
+                const createGame = new Function(...argNames, code);
+
+                // Pass the conditional Mocks
+                const result = createGame(...argValues);
 
                 if (!result || typeof result.init !== 'function' || typeof result.update !== 'function' || typeof result.draw !== 'function') {
                     throw new Error("Missing exported functions: init, update, or draw");

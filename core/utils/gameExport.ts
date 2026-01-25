@@ -4,6 +4,8 @@
  * This separates the "Engine Harness" logic from the UI components.
  */
 
+import { LIBRARY_SOURCE } from '../runtime/StandardLibrary';
+
 export const getStandaloneHTML = (title: string, code: string): string => {
     return `<!DOCTYPE html>
 <html lang="en">
@@ -20,6 +22,28 @@ export const getStandaloneHTML = (title: string, code: string): string => {
     <div id="info">Generated with Realtime-Game-Agent</div>
     <canvas id="canvas"></canvas>
     <script>
+        /**
+         * STANDARD LIBRARY (INJECTED CONDITIONALLY)
+         * ----------------------------------------------------
+         * Provides global classes if the game code doesn't define them.
+         */
+        ${(() => {
+            const hasVectorRedef = /class\s+Vector\b|const\s+Vector\b|var\s+Vector\b|function\s+Vector\b/.test(code);
+            const hasColorsRedef = /const\s+COLORS\b|var\s+COLORS\b|let\s+COLORS\b/.test(code);
+
+            // If the code defines its own Vector/COLORS, we should be careful.
+            // However, LIBRARY_SOURCE currently exports everything as a block.
+            // Strategy: Inject it ONLY if Vector is missing. 
+            // In the future, we should split LIBRARY_SOURCE. 
+            // For now, if AI defines Vector, we assume it's self-contained and SKIP the library to avoid "Identifier declared".
+
+            if (hasVectorRedef || hasColorsRedef) {
+                return '// Standard Library injection skipped (User code defines Vector/COLORS)';
+            } else {
+                return LIBRARY_SOURCE;
+            }
+        })()}
+
         /**
          * GAME LOGIC SECTION (AI GENERATED)
          * ----------------------------------------------------
