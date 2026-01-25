@@ -33,8 +33,14 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
         }
     }, [status, game]);
 
+    const INJECTION_HEADER = '// Environment provides: Vector, COLORS\n';
+
     useEffect(() => {
-        if (game?.code) setEditedCode(game.code);
+        if (game?.code) {
+            // Prepend header for display, but prevent double stacking
+            const code = game.code.startsWith(INJECTION_HEADER) ? game.code : INJECTION_HEADER + game.code;
+            setEditedCode(code);
+        }
     }, [game?.code]);
 
     const handleSave = () => {
@@ -48,17 +54,30 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
     };
 
     const performSave = (gameToSave: GameDefinition) => {
-        onSave(gameToSave);
+        // Strip header before saving
+        const cleanCode = editedCode.startsWith(INJECTION_HEADER)
+            ? editedCode.substring(INJECTION_HEADER.length)
+            : editedCode;
+
+        onSave({ ...gameToSave, code: cleanCode });
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
         setShowAuthorModal(false);
     };
 
     const handleApplyCode = () => {
-        if (onUpdateCode && editedCode !== game?.code) {
-            onUpdateCode(editedCode);
+        const cleanCode = editedCode.startsWith(INJECTION_HEADER)
+            ? editedCode.substring(INJECTION_HEADER.length)
+            : editedCode;
+
+        if (onUpdateCode && cleanCode !== game?.code) {
+            onUpdateCode(cleanCode);
         }
     };
+
+    const cleanEditedCode = editedCode.startsWith(INJECTION_HEADER)
+        ? editedCode.substring(INJECTION_HEADER.length)
+        : editedCode;
 
     const codeToDisplay = viewMode === 'full' && game
         ? getStandaloneHTML(game.title, editedCode)
@@ -80,8 +99,8 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
                                 key={btn.id}
                                 onClick={btn.onClick}
                                 className={`px-4 py-2 rounded-full font-bold text-xs border whitespace-nowrap transition-all ${btn.active
-                                        ? (btn.activeClass || 'bg-brand-cyan text-black border-brand-cyan')
-                                        : (btn.inactiveClass || 'bg-black/40 text-gray-400 border-white/10')
+                                    ? (btn.activeClass || 'bg-brand-cyan text-black border-brand-cyan')
+                                    : (btn.inactiveClass || 'bg-black/40 text-gray-400 border-white/10')
                                     }`}
                             >
                                 {btn.label}
@@ -107,20 +126,40 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
                         ) : (
                             <div className="w-full h-full bg-[#0d1117] flex flex-col">
                                 <div className="h-14 border-b border-white/10 flex items-center justify-end px-6 gap-4 bg-black/20">
-                                    <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
-                                        <button onClick={() => setViewMode('fragment')} className={`px-3 py-1 text-[10px] rounded ${viewMode === 'fragment' ? 'bg-brand-cyan/20 text-brand-cyan' : 'text-gray-500'}`}>EDITOR</button>
-                                        <button onClick={() => setViewMode('full')} className={`px-3 py-1 text-[10px] rounded ${viewMode === 'full' ? 'bg-brand-cyan/20 text-brand-cyan' : 'text-gray-500'}`}>FULL HTML</button>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex bg-black/40 rounded-lg p-1 border border-white/10">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setViewMode('fragment'); }}
+                                                className={`px-4 py-1.5 text-[10px] uppercase font-bold tracking-wider rounded transition-colors ${viewMode === 'fragment' ? 'bg-brand-cyan/20 text-brand-cyan shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                            >
+                                                Editor
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setViewMode('full'); }}
+                                                className={`px-4 py-1.5 text-[10px] uppercase font-bold tracking-wider rounded transition-colors ${viewMode === 'full' ? 'bg-brand-cyan/20 text-brand-cyan shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                                            >
+                                                Full HTML
+                                            </button>
+                                        </div>
+
+                                        {viewMode === 'fragment' && (
+                                            <button onClick={handleApplyCode} disabled={cleanEditedCode === game.code} className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${cleanEditedCode !== game.code ? 'bg-brand-cyan text-black hover:bg-brand-cyan/90' : 'bg-white/5 text-white/20 cursor-not-allowed'}`}>APPLY</button>
+                                        )}
+                                        <button onClick={() => navigator.clipboard.writeText(codeToDisplay)} className="px-4 py-1.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded text-xs text-zinc-400 transition-colors">COPY</button>
                                     </div>
-                                    {viewMode === 'fragment' && (
-                                        <button onClick={handleApplyCode} disabled={editedCode === game.code} className={`px-3 py-1.5 rounded text-xs ${editedCode !== game.code ? 'bg-brand-cyan text-black' : 'opacity-30'}`}>APPLY</button>
-                                    )}
-                                    <button onClick={() => navigator.clipboard.writeText(codeToDisplay)} className="px-3 py-1.5 bg-white/10 rounded text-xs text-white">COPY</button>
                                 </div>
-                                <div className="flex-1 overflow-hidden relative">
+
+                                <div className="flex-1 overflow-hidden relative group">
                                     {viewMode === 'fragment' ? (
-                                        <textarea className="w-full h-full bg-[#0d1117] text-gray-300 p-6 font-mono text-xs leading-5 focus:outline-none" value={editedCode} onChange={(e) => setEditedCode(e.target.value)} spellCheck={false} />
+                                        <textarea
+                                            className="w-full h-full bg-[#0d1117] text-gray-300 p-6 font-mono text-xs leading-5 focus:outline-none resize-none selection:bg-brand-cyan/30"
+                                            value={editedCode}
+                                            onChange={(e) => setEditedCode(e.target.value)}
+                                            spellCheck={false}
+                                            placeholder="// Write your game code here..."
+                                        />
                                     ) : (
-                                        <pre className="w-full h-full overflow-auto p-6 text-gray-400 font-mono text-xs leading-5">{codeToDisplay}</pre>
+                                        <pre className="w-full h-full overflow-auto p-6 text-zinc-400 font-mono text-xs leading-5 select-text cursor-text">{codeToDisplay}</pre>
                                     )}
                                 </div>
                             </div>

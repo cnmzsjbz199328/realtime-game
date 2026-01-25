@@ -48,6 +48,7 @@ export class HeadlessBrowserValidator implements IGameValidator {
                         add(v: any) { this.x += v.x; this.y += v.y; return this; }
                         sub(v: any) { this.x -= v.x; this.y -= v.y; return this; }
                         multiplyScalar(s: number) { this.x *= s; this.y *= s; return this; }
+                        scale(s: number) { return this.multiplyScalar(s); }
                         normalize() {
                             const len = Math.sqrt(this.x * this.x + this.y * this.y);
                             if (len > 0) { this.x /= len; this.y /= len; }
