@@ -216,19 +216,41 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
       }
     };
 
+    // --- RESIZE OBSERVER (Dynamic Resolution) ---
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (!entries[0] || !canvas) return;
+      const { width, height } = entries[0].contentRect;
+
+      // Update internal resolution to match display size (1:1 pixel ratio for crispness)
+      // or you could fix it to a lower retro resolution (e.g. 320x240) and scale up with CSS.
+      // Here we choose 1:1 for sharp text rendering.
+      canvas.width = width;
+      canvas.height = height;
+
+      // Force a redraw/input update immediately
+      if (gameInterface) {
+        gameInterface.init(stateRef.current, width, height);
+      }
+    });
+
+    resizeObserver.observe(containerRef.current!);
+
     // Kick off initialization
     initGame();
 
     return () => {
       isActive = false;
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      resizeObserver.disconnect();
     };
   }, [gameDef, onCrash]);
 
   // Virtual Controls Logic
-  const handleVirtualKey = (key: string, isDown: boolean, e: React.TouchEvent) => {
+  const handleVirtualKey = (key: string, isDown: boolean, e: React.TouchEvent | React.MouseEvent) => {
+    // Only logic processing here. Event prevention is handled globally by the container.
     e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Keep it local
+
     inputRef.current.keys[key] = isDown;
     (inputRef.current as any)[key] = isDown;
     // Common aliases
@@ -240,51 +262,56 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
   };
 
   return (
-    <div ref={containerRef} className="relative w-full h-full flex flex-col items-center justify-center bg-black/50 rounded-xl overflow-hidden border border-zinc-700">
+    <div
+      ref={containerRef}
+      className="relative w-full h-full flex flex-col items-center justify-center bg-black/50 rounded-xl overflow-hidden border border-zinc-700 select-none"
+      // 1. GLOBAL EVENT CAPTURE (The Black Hole Strategy)
+      // We prevent DEFAULT on the container for contextmenu, creating a safe zone.
+      onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      style={{
+        touchAction: 'none',             // CSS: Disable browser scrolling/zooming
+        WebkitTouchCallout: 'none',      // iOS: Disable Magnifying Glass / Menu
+        WebkitUserSelect: 'none',        // iOS: Disable Text Selection
+        userSelect: 'none',              // Standard: Disable Text Selection
+        WebkitTapHighlightColor: 'transparent' // Standard: Disable Tap Highlight
+      }}
+    >
 
       {/* VIRTUAL CONTROLS OVERLAY - Only visible on touch/mobile */}
-      <div
-        className={`absolute inset-0 pointer-events-none z-10 select-none touch-none ${isTouchDevice ? 'block' : 'hidden'}`}
-        style={{
-          WebkitTouchCallout: 'none',
-          WebkitUserSelect: 'none',
-          WebkitTapHighlightColor: 'transparent'
-        }}
-        onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-      >
+      <div className={`absolute inset-0 pointer-events-none z-10 ${isTouchDevice ? 'block' : 'hidden'}`}>
         {/* D-PAD Left */}
         <div className="absolute bottom-8 left-8 grid grid-cols-3 gap-2 pointer-events-auto opacity-40 hover:opacity-80 transition-opacity">
           <div />
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowUp', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowUp', false, e)}
-            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
+            onMouseDown={(e) => handleVirtualKey('ArrowUp', true, e)}
+            onMouseUp={(e) => handleVirtualKey('ArrowUp', false, e)}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
           >↑</button>
           <div />
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowLeft', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowLeft', false, e)}
-            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
+            onMouseDown={(e) => handleVirtualKey('ArrowLeft', true, e)}
+            onMouseUp={(e) => handleVirtualKey('ArrowLeft', false, e)}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
           >←</button>
-          <div className="w-12 h-12 flex items-center justify-center text-white/20 select-none">•</div>
+          <div className="w-12 h-12 flex items-center justify-center text-white/20">•</div>
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowRight', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowRight', false, e)}
-            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
+            onMouseDown={(e) => handleVirtualKey('ArrowRight', true, e)}
+            onMouseUp={(e) => handleVirtualKey('ArrowRight', false, e)}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
           >→</button>
           <div />
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowDown', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowDown', false, e)}
-            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
-            style={{ WebkitTapHighlightColor: 'transparent' }}
+            onMouseDown={(e) => handleVirtualKey('ArrowDown', true, e)}
+            onMouseUp={(e) => handleVirtualKey('ArrowDown', false, e)}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
           >↓</button>
           <div />
         </div>
@@ -294,9 +321,9 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
           <button
             onTouchStart={(e) => handleVirtualKey('Space', true, e)}
             onTouchEnd={(e) => handleVirtualKey('Space', false, e)}
-            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold active:bg-white/50 border-4 border-white/10 select-none"
-            style={{ touchAction: 'none', WebkitTapHighlightColor: 'transparent' }}
+            onMouseDown={(e) => handleVirtualKey('Space', true, e)}
+            onMouseUp={(e) => handleVirtualKey('Space', false, e)}
+            className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold active:bg-white/50 border-4 border-white/10"
           >A</button>
         </div>
       </div>
@@ -311,12 +338,12 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
         </div>
       ) : null}
 
+      {/* 2. DYNAMIC FULLSCREEN CANVAS */}
+      {/* We removed width={800} height={600}. It now fills the container 100%. */}
+      {/* The ResizeObserver above handles the internal logical resolution. */}
       <canvas
         ref={canvasRef}
-        width={800}
-        height={600}
-        style={{ touchAction: 'none', userSelect: 'none' }}
-        className="max-w-full max-h-full shadow-2xl cursor-crosshair bg-[#050505]"
+        className="block w-full h-full shadow-2xl cursor-crosshair bg-[#050505]"
       />
     </div>
   );
