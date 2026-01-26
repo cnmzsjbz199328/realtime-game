@@ -227,6 +227,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
 
   // Virtual Controls Logic
   const handleVirtualKey = (key: string, isDown: boolean, e: React.TouchEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     inputRef.current.keys[key] = isDown;
     (inputRef.current as any)[key] = isDown;
@@ -242,7 +243,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     <div ref={containerRef} className="relative w-full h-full flex flex-col items-center justify-center bg-black/50 rounded-xl overflow-hidden border border-zinc-700">
 
       {/* VIRTUAL CONTROLS OVERLAY - Only visible on touch/mobile */}
-      <div className={`absolute inset-0 pointer-events-none z-10 select-none touch-none ${isTouchDevice ? 'block' : 'hidden'}`}>
+      <div className={`absolute inset-0 pointer-events-none z-10 select-none touch-none ${isTouchDevice ? 'block' : 'hidden'}`} style={{ WebkitTouchCallout: 'none' }}>
         {/* D-PAD Left */}
         <div className="absolute bottom-8 left-8 grid grid-cols-3 gap-2 pointer-events-auto opacity-40 hover:opacity-80 transition-opacity">
           <div />
@@ -278,6 +279,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
             onTouchStart={(e) => handleVirtualKey('Space', true, e)}
             onTouchEnd={(e) => handleVirtualKey('Space', false, e)}
             className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold active:bg-white/50 border-4 border-white/10"
+            style={{ touchAction: 'none' }}
           >A</button>
         </div>
       </div>
