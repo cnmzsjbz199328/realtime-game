@@ -243,32 +243,48 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     <div ref={containerRef} className="relative w-full h-full flex flex-col items-center justify-center bg-black/50 rounded-xl overflow-hidden border border-zinc-700">
 
       {/* VIRTUAL CONTROLS OVERLAY - Only visible on touch/mobile */}
-      <div className={`absolute inset-0 pointer-events-none z-10 select-none touch-none ${isTouchDevice ? 'block' : 'hidden'}`} style={{ WebkitTouchCallout: 'none' }}>
+      <div
+        className={`absolute inset-0 pointer-events-none z-10 select-none touch-none ${isTouchDevice ? 'block' : 'hidden'}`}
+        style={{
+          WebkitTouchCallout: 'none',
+          WebkitUserSelect: 'none',
+          WebkitTapHighlightColor: 'transparent'
+        }}
+        onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+      >
         {/* D-PAD Left */}
         <div className="absolute bottom-8 left-8 grid grid-cols-3 gap-2 pointer-events-auto opacity-40 hover:opacity-80 transition-opacity">
           <div />
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowUp', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowUp', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
+            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >↑</button>
           <div />
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowLeft', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowLeft', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
+            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >←</button>
-          <div className="w-12 h-12 flex items-center justify-center text-white/20">•</div>
+          <div className="w-12 h-12 flex items-center justify-center text-white/20 select-none">•</div>
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowRight', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowRight', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
+            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >→</button>
           <div />
           <button
             onTouchStart={(e) => handleVirtualKey('ArrowDown', true, e)}
             onTouchEnd={(e) => handleVirtualKey('ArrowDown', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
+            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50 select-none"
+            style={{ WebkitTapHighlightColor: 'transparent' }}
           >↓</button>
           <div />
         </div>
@@ -278,8 +294,9 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
           <button
             onTouchStart={(e) => handleVirtualKey('Space', true, e)}
             onTouchEnd={(e) => handleVirtualKey('Space', false, e)}
-            className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold active:bg-white/50 border-4 border-white/10"
-            style={{ touchAction: 'none' }}
+            onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold active:bg-white/50 border-4 border-white/10 select-none"
+            style={{ touchAction: 'none', WebkitTapHighlightColor: 'transparent' }}
           >A</button>
         </div>
       </div>
