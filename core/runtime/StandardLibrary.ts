@@ -21,25 +21,56 @@ export class Vector {
     constructor(x: number = 0, y: number = 0) {
         this.x = x;
         this.y = y;
+        this._clean();
+    }
+
+    // PHASE 2 DEFENSE: Self-Healing Mechanism
+    private _clean(): Vector {
+        if (!Number.isFinite(this.x) || !Number.isFinite(this.y)) {
+            this.x = 0;
+            this.y = 0;
+        }
+        return this;
+    }
+
+    set(x: number | { x: number, y: number }, y?: number): Vector {
+        if (typeof x === 'object' && x !== null) {
+            this.x = x.x;
+            this.y = x.y;
+        } else if (typeof x === 'number' && typeof y === 'number') {
+            this.x = x;
+            this.y = y;
+        }
+        return this._clean();
     }
 
     // --- Basic Arithmetic ---
-    add(v: { x: number, y: number }): Vector {
-        this.x += v.x;
-        this.y += v.y;
-        return this;
+    add(v: { x: number, y: number } | number): Vector {
+        if (typeof v === 'number') {
+            this.x += v;
+            this.y += v;
+        } else {
+            this.x += v.x;
+            this.y += v.y;
+        }
+        return this._clean();
     }
 
-    sub(v: { x: number, y: number }): Vector {
-        this.x -= v.x;
-        this.y -= v.y;
-        return this;
+    sub(v: { x: number, y: number } | number): Vector {
+        if (typeof v === 'number') {
+            this.x -= v;
+            this.y -= v;
+        } else {
+            this.x -= v.x;
+            this.y -= v.y;
+        }
+        return this._clean();
     }
 
     multiply(s: number): Vector { // Standard multiply
         this.x *= s;
         this.y *= s;
-        return this;
+        return this._clean();
     }
 
     multiplyScalar(s: number): Vector { // Alias
@@ -58,8 +89,11 @@ export class Vector {
         if (s !== 0) {
             this.x /= s;
             this.y /= s;
+        } else {
+            this.x = 0;
+            this.y = 0;
         }
-        return this;
+        return this._clean();
     }
 
     div(s: number): Vector { // Alias (p5.js style)
@@ -71,6 +105,10 @@ export class Vector {
         return Math.sqrt(this.x * this.x + this.y * this.y);
     }
 
+    magnitude(): number { // Alias for common AI mistake
+        return this.mag();
+    }
+
     magSq(): number { // Performance optimization
         return this.x * this.x + this.y * this.y;
     }
@@ -78,7 +116,8 @@ export class Vector {
     normalize(): Vector {
         const m = this.mag();
         if (m > 0) this.divide(m);
-        return this;
+        else { this.x = 0; this.y = 0; }
+        return this._clean();
     }
 
     setMag(n: number): Vector {
@@ -89,7 +128,7 @@ export class Vector {
         if (this.magSq() > max * max) {
             this.setMag(max);
         }
-        return this;
+        return this._clean();
     }
 
     // --- Direction & Rotation ---
@@ -102,7 +141,7 @@ export class Vector {
         const mag = this.mag();
         this.x = Math.cos(newHeading) * mag;
         this.y = Math.sin(newHeading) * mag;
-        return this;
+        return this._clean();
     }
 
     // --- Relationship ---
@@ -136,7 +175,7 @@ export class Vector {
     lerp(v: Vector, amt: number): Vector {
         this.x += (v.x - this.x) * amt;
         this.y += (v.y - this.y) * amt;
-        return this;
+        return this._clean();
     }
 
     copy(): Vector {
@@ -158,6 +197,14 @@ export class Vector {
         return new Vector(v1.x - v2.x, v1.y - v2.y);
     }
 
+    static mult(v: Vector, n: number): Vector {
+        return new Vector(v.x * n, v.y * n);
+    }
+
+    static div(v: Vector, n: number): Vector {
+        return new Vector(v.x / n, v.y / n);
+    }
+
     static random2D(): Vector {
         const angle = Math.random() * Math.PI * 2;
         return new Vector(Math.cos(angle), Math.sin(angle));
@@ -169,7 +216,6 @@ export class Vector {
 }
 
 // 3. GAMEOBJECT BASE CLASS
-// The engine interface implies a base class for update/draw
 export class GameObject {
     x: number;
     y: number;
@@ -187,7 +233,6 @@ export class GameObject {
         this.velocity = new Vector(0, 0);
     }
 
-    // Default implementations to prevent crashes if super.update() is called
     update(dt: number, state: any, w: number, h: number) {
         this.x += this.velocity.x * dt;
         this.y += this.velocity.y * dt;
@@ -204,6 +249,98 @@ export class GameObject {
     }
 }
 
+// 4. RETRO AUDIO SYNTHESIZER
+export class RetroAudio {
+    ctx: AudioContext;
+    master: GainNode;
+    initialized: boolean;
+
+    constructor() {
+        // @ts-ignore - Handle cross-browser support if needed
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContextClass();
+        this.master = this.ctx.createGain();
+        this.master.connect(this.ctx.destination);
+        this.master.gain.value = 0.25; // Default volume
+        this.initialized = false;
+    }
+
+    resume() {
+        if (!this.initialized || this.ctx.state === 'suspended') {
+            this.ctx.resume().then(() => {
+                this.initialized = true;
+            }).catch(console.error);
+        }
+    }
+
+    play(type: string) {
+        // Auto-resume on first play attempt
+        if (this.ctx.state === 'suspended') this.resume();
+
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.connect(g);
+        g.connect(this.master);
+
+        if (type === 'shoot' || type === 'laser') {
+            // Pew Pew: Fast frequency drop
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(800, t);
+            osc.frequency.exponentialRampToValueAtTime(100, t + 0.15);
+            g.gain.setValueAtTime(0.8, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            osc.start(t);
+            osc.stop(t + 0.15);
+        }
+        else if (type === 'explode' || type === 'explosion' || type === 'hit') {
+            // Boom: Low saw with decay
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, t);
+            osc.frequency.exponentialRampToValueAtTime(10, t + 0.2);
+            g.gain.setValueAtTime(1.0, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t);
+            osc.stop(t + 0.2);
+        }
+        else if (type === 'jump') {
+            // Boing: Frequency slide up
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.linearRampToValueAtTime(300, t + 0.1);
+            g.gain.setValueAtTime(0.5, t);
+            g.gain.linearRampToValueAtTime(0.01, t + 0.1);
+            osc.start(t);
+            osc.stop(t + 0.1);
+        }
+        else if (type === 'collect' || type === 'coin') {
+            // Ding: Two tones
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200, t);
+            osc.frequency.setValueAtTime(1600, t + 0.05);
+            g.gain.setValueAtTime(0.5, t);
+            g.gain.linearRampToValueAtTime(0.01, t + 0.1);
+            osc.start(t);
+            osc.stop(t + 0.1);
+        }
+        else {
+            // Default Blip
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, t);
+            g.gain.setValueAtTime(0.1, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+            osc.start(t);
+            osc.stop(t + 0.05);
+        }
+    }
+}
+
+// ------------------------------------------------------------------
+// STANDARD LIBRARY (Canvas2D)
+// ------------------------------------------------------------------
+
+declare const sfx: any;
+
 // === EXPORT FOR IFRAME INJECTION ===
 // We need these as strings to inject into the HTML template for GamePreview.tsx
 export const LIBRARY_SOURCE = `
@@ -213,39 +350,78 @@ class Vector {
     constructor(x = 0, y = 0) {
         this.x = x;
         this.y = y;
+        this._clean();
+    }
+
+    // PHASE 2 DEFENSE: Self-Healing Mechanism
+    _clean() {
+        if (!Number.isFinite(this.x) || !Number.isFinite(this.y)) {
+            this.x = 0;
+            this.y = 0;
+        }
+        return this;
+    }
+    
+    set(x, y) {
+        if (typeof x === 'object' && x !== null) {
+            this.x = x.x;
+            this.y = x.y;
+        } else {
+            this.x = x;
+            this.y = y;
+        }
+        return this._clean();
     }
     
     // Basic Arithmetic
-    add(v) { this.x += v.x; this.y += v.y; return this; }
-    sub(v) { this.x -= v.x; this.y -= v.y; return this; }
-    multiply(s) { this.x *= s; this.y *= s; return this; }
+    add(v) { 
+        if (typeof v === 'number') { this.x += v; this.y += v; }
+        else { this.x += v.x; this.y += v.y; }
+        return this._clean(); 
+    }
+    
+    sub(v) { 
+        if (typeof v === 'number') { this.x -= v; this.y -= v; }
+        else { this.x -= v.x; this.y -= v.y; }
+        return this._clean(); 
+    }
+    
+    multiply(s) { this.x *= s; this.y *= s; return this._clean(); }
     multiplyScalar(s) { return this.multiply(s); }
     scale(s) { return this.multiply(s); }
-    mult(s) { return this.multiply(s); }
-    divide(s) { if (s !== 0) { this.x /= s; this.y /= s; } return this; }
-    div(s) { return this.divide(s); }
+    mult(s) { return this.multiply(s); } // Alias for AI consistency
+    
+    divide(s) { 
+        if (s !== 0) { this.x /= s; this.y /= s; } 
+        else { this.x = 0; this.y = 0; }
+        return this._clean(); 
+    }
+    div(s) { return this.divide(s); } // Alias for AI consistency
 
     // Magnitude & Normalization
     mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
     magSq() { return this.x * this.x + this.y * this.y; }
+    magnitude() { return this.mag(); } // Alias
     
     normalize() { 
         const m = this.mag(); 
         if (m > 0) this.divide(m); 
-        return this; 
+        else { this.x = 0; this.y = 0; }
+        return this._clean(); 
     }
     
     setMag(n) { return this.normalize().multiply(n); }
-    limit(max) { if (this.magSq() > max * max) this.setMag(max); return this; }
+    limit(max) { if (this.magSq() > max * max) this.setMag(max); return this._clean(); }
     
     // Direction & Rotation
     heading() { return Math.atan2(this.y, this.x); }
+    
     rotate(angle) {
         const newHeading = this.heading() + angle;
         const mag = this.mag();
         this.x = Math.cos(newHeading) * mag;
         this.y = Math.sin(newHeading) * mag;
-        return this;
+        return this._clean();
     }
 
     // Relationship
@@ -272,7 +448,7 @@ class Vector {
     lerp(v, amt) {
         this.x += (v.x - this.x) * amt;
         this.y += (v.y - this.y) * amt;
-        return this;
+        return this._clean();
     }
 
     copy() { return new Vector(this.x, this.y); }
@@ -281,6 +457,8 @@ class Vector {
     static distance(v1, v2) { return Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2)); }
     static add(v1, v2) { return new Vector(v1.x + v2.x, v1.y + v2.y); }
     static sub(v1, v2) { return new Vector(v1.x - v2.x, v1.y - v2.y); }
+    static mult(v, n) { return new Vector(v.x * n, v.y * n); }
+    static div(v, n) { return new Vector(v.x / n, v.y / n); }
     static random2D() { const a = Math.random() * Math.PI * 2; return new Vector(Math.cos(a), Math.sin(a)); }
     static fromAngle(angle, length = 1) { return new Vector(length * Math.cos(angle), length * Math.sin(angle)); }
 }
@@ -309,6 +487,68 @@ class GameObject {
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
+    }
+}
+
+class RetroAudio {
+    constructor() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContextClass();
+        this.master = this.ctx.createGain();
+        this.master.connect(this.ctx.destination);
+        this.master.gain.value = 0.25;
+        this.initialized = false;
+    }
+
+    resume() {
+        if (!this.initialized || this.ctx.state === 'suspended') {
+            this.ctx.resume().then(() => { this.initialized = true; }).catch(console.error);
+        }
+    }
+
+    play(type) {
+        if (this.ctx.state === 'suspended') this.resume();
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.connect(g);
+        g.connect(this.master);
+
+        if (type === 'shoot' || type === 'laser') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(800, t);
+            osc.frequency.exponentialRampToValueAtTime(100, t + 0.15);
+            g.gain.setValueAtTime(0.8, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+            osc.start(t); osc.stop(t + 0.15);
+        } else if (type === 'explode' || type === 'explosion' || type === 'hit') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(100, t);
+            osc.frequency.exponentialRampToValueAtTime(10, t + 0.2);
+            g.gain.setValueAtTime(1.0, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'jump') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.linearRampToValueAtTime(300, t + 0.1);
+            g.gain.setValueAtTime(0.5, t);
+            g.gain.linearRampToValueAtTime(0.01, t + 0.1);
+            osc.start(t); osc.stop(t + 0.1);
+        } else if (type === 'collect' || type === 'coin') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1200, t);
+            osc.frequency.setValueAtTime(1600, t + 0.05);
+            g.gain.setValueAtTime(0.5, t);
+            g.gain.linearRampToValueAtTime(0.01, t + 0.1);
+            osc.start(t); osc.stop(t + 0.1);
+        } else {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, t);
+            g.gain.setValueAtTime(0.1, t);
+            g.gain.exponentialRampToValueAtTime(0.01, t + 0.05);
+            osc.start(t); osc.stop(t + 0.05);
+        }
     }
 }
 `;

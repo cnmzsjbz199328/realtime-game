@@ -138,19 +138,23 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     // Use async IIFE to allow awaiting the standard library
     const initGame = async () => {
       try {
-        const { Vector, COLORS } = await import('../core/runtime/StandardLibrary');
+        const { Vector, COLORS, RetroAudio } = await import('../core/runtime/StandardLibrary');
+
 
         if (!isActive) return;
 
         // SANDBOX COMPATIBILITY LAYER
         // ----------------------------------------------------
         // Detailed analysis of the code to prevent naming conflicts.
-        // If the AI defined 'class Vector' or 'const COLORS', we MUST NOT inject our own,
-        // otherwise a SyntaxError (Identifier already declared) will occur.
 
         const code = gameDef.code;
-        const hasVectorRedef = /class\s+Vector\b|const\s+Vector\b|var\s+Vector\b|function\s+Vector\b/.test(code);
-        const hasColorsRedef = /const\s+COLORS\b|var\s+COLORS\b|let\s+COLORS\b/.test(code);
+
+        // Strip comments to prevent false positives in regex checks
+        // e.g. "// const sfx = ..." should NOT trigger redeclaration logic
+        const codeWithoutComments = code.replace(/\/\*[\s\S]*?\*\/|([^:]|^)\/\/.*$/gm, '$1');
+
+        const hasVectorRedef = /class\s+Vector\b|const\s+Vector\b|var\s+Vector\b|function\s+Vector\b/.test(codeWithoutComments);
+        const hasColorsRedef = /const\s+COLORS\b|var\s+COLORS\b|let\s+COLORS\b/.test(codeWithoutComments);
 
         // Build injection context dynamically
         const argNames = [];
@@ -167,6 +171,25 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
           argNames.push('COLORS');
           argValues.push(COLORS);
         }
+
+        // 3. Audio: Conditional Injection to prevent "Identifier 'sfx' already declared"
+        const hasSfxRedef = /const\s+sfx\b|let\s+sfx\b|var\s+sfx\b|function\s+sfx\b/.test(codeWithoutComments);
+
+        let sfx: any; // Keep reference to resume context later
+
+        if (!hasSfxRedef) {
+          sfx = new RetroAudio();
+          argNames.push('sfx');
+          argValues.push(sfx);
+        }
+
+        // Resume audio on interaction (only if we injected it or can access it)
+        if (sfx) {
+          const resumeAudio = () => sfx.resume();
+          window.addEventListener('click', resumeAudio, { once: true });
+          window.addEventListener('keydown', resumeAudio, { once: true });
+        }
+
 
         // 3. GameObject: REMOVED from injection (Option B)
         // AI is expected to define its own base class if needed to avoid inheritance conflicts.

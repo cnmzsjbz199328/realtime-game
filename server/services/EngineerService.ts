@@ -53,18 +53,7 @@ ${architectSpec}
             `;
         }
 
-        const compositePrompt = systemPrompt
-            ? `${systemPrompt}\n\n=== CONTEXT ===\n${gameDesignContext}`
-            : `You are an expert game engineer. Create a playable JS Canvas game using this design: ${gameDesignContext}. 
-            
-=== Output Format ===
-TITLE: (Game Title)
-DESCRIPTION: (Game Description)
-CODE:
-\`\`\`javascript
-// Code here
-\`\`\`
-`;
+        const compositePrompt = `${systemPrompt}\n\n=== CONTEXT ===\n${gameDesignContext}`;
 
         console.log('[ENGINEER] Calling AI for code generation...');
         const startTime = Date.now();
