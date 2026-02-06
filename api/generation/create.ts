@@ -65,6 +65,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({
             success: true,
             game: gameDef,
+            spec: architectSpec, // Expose internal spec for transparency/verification
+            design: expandedDesign, // Expose Director's design concept
             metadata: {
                 skeletonId,
                 skeletonName: skeletonContext.description,

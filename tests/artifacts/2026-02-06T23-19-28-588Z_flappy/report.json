@@ -1,0 +1,8 @@
+{
+  "result": "FAIL",
+  "gameId": "flappy",
+  "timestamp": "2026-02-06T23-19-28-588Z",
+  "errors": [
+    "Identifier 'COLORS' has already been declared"
+  ]
+}

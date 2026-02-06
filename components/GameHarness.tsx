@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameDefinition, InputState } from '../core/domain/types';
+import { useGameInput } from './hooks/useGameInput';
+import { VirtualControls } from './VirtualControls';
 
 interface GameHarnessProps {
   gameDef: GameDefinition;
@@ -19,8 +21,8 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
   const stateRef = useRef<any>({});
   const lastTimeRef = useRef<number>(0);
 
-  // Input handling
-  const inputRef = useRef<InputState>({ x: 0, y: 0, isDown: false, keys: {} });
+  // Extracted Hook
+  const inputRef = useGameInput(canvasRef);
 
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
@@ -29,91 +31,6 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
   useEffect(() => {
     const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     setIsTouchDevice(hasTouch);
-  }, []);
-
-  // Setup Input Listeners
-  useEffect(() => {
-    const updateInputCoord = (clientX: number, clientY: number) => {
-      if (!canvasRef.current) return;
-      const rect = canvasRef.current.getBoundingClientRect();
-      const scaleX = canvasRef.current.width / rect.width;
-      const scaleY = canvasRef.current.height / rect.height;
-      inputRef.current.x = (clientX - rect.left) * scaleX;
-      inputRef.current.y = (clientY - rect.top) * scaleY;
-    };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      updateInputCoord(e.clientX, e.clientY);
-    };
-    const handleMouseDown = () => { inputRef.current.isDown = true; };
-    const handleMouseUp = () => { inputRef.current.isDown = false; };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      inputRef.current.keys[e.code] = true;
-      (inputRef.current as any)[e.code] = true;
-      if (e.key === ' ') (inputRef.current as any)[' '] = true;
-      (inputRef.current as any)[e.key.toLowerCase()] = true;
-
-      if (e.key === 'ArrowLeft') (inputRef.current as any).left = true;
-      if (e.key === 'ArrowRight') (inputRef.current as any).right = true;
-      if (e.key === 'ArrowUp') (inputRef.current as any).up = true;
-      if (e.key === 'ArrowDown') (inputRef.current as any).down = true;
-      if (e.key === ' ') (inputRef.current as any).Space = true;
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      inputRef.current.keys[e.code] = false;
-      (inputRef.current as any)[e.code] = false;
-      if (e.key === ' ') (inputRef.current as any)[' '] = false;
-      (inputRef.current as any)[e.key.toLowerCase()] = false;
-
-      if (e.key === 'ArrowLeft') (inputRef.current as any).left = false;
-      if (e.key === 'ArrowRight') (inputRef.current as any).right = false;
-      if (e.key === 'ArrowUp') (inputRef.current as any).up = false;
-      if (e.key === 'ArrowDown') (inputRef.current as any).down = false;
-      if (e.key === ' ') (inputRef.current as any).Space = false;
-    };
-
-    // Touch support
-    const handleTouchStart = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        updateInputCoord(e.touches[0].clientX, e.touches[0].clientY);
-        inputRef.current.isDown = true;
-      }
-      if (e.target === canvasRef.current) e.preventDefault();
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        updateInputCoord(e.touches[0].clientX, e.touches[0].clientY);
-      }
-      if (e.target === canvasRef.current) e.preventDefault();
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      inputRef.current.isDown = false;
-      if (e.target === canvasRef.current) e.preventDefault();
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mouseup', handleMouseUp);
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd, { passive: false });
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mousedown', handleMouseDown);
-      window.removeEventListener('mouseup', handleMouseUp);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
   }, []);
 
   // Initialize and Run Game
@@ -268,22 +185,6 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     };
   }, [gameDef, onCrash]);
 
-  // Virtual Controls Logic
-  const handleVirtualKey = (key: string, isDown: boolean, e: React.TouchEvent | React.MouseEvent) => {
-    // Only logic processing here. Event prevention is handled globally by the container.
-    e.preventDefault();
-    e.stopPropagation(); // Keep it local
-
-    inputRef.current.keys[key] = isDown;
-    (inputRef.current as any)[key] = isDown;
-    // Common aliases
-    if (key === 'ArrowUp') (inputRef.current as any).up = isDown;
-    if (key === 'ArrowDown') (inputRef.current as any).down = isDown;
-    if (key === 'ArrowLeft') (inputRef.current as any).left = isDown;
-    if (key === 'ArrowRight') (inputRef.current as any).right = isDown;
-    if (key === 'Space') (inputRef.current as any)[' '] = isDown;
-  };
-
   return (
     <div
       ref={containerRef}
@@ -301,55 +202,7 @@ export const GameHarness: React.FC<GameHarnessProps> = ({ gameDef, onCrash }) =>
     >
 
       {/* VIRTUAL CONTROLS OVERLAY - Only visible on touch/mobile */}
-      <div className={`absolute inset-0 pointer-events-none z-10 ${isTouchDevice ? 'block' : 'hidden'}`}>
-        {/* D-PAD Left */}
-        <div className="absolute bottom-8 left-8 grid grid-cols-3 gap-2 pointer-events-auto opacity-40 hover:opacity-80 transition-opacity">
-          <div />
-          <button
-            onTouchStart={(e) => handleVirtualKey('ArrowUp', true, e)}
-            onTouchEnd={(e) => handleVirtualKey('ArrowUp', false, e)}
-            onMouseDown={(e) => handleVirtualKey('ArrowUp', true, e)}
-            onMouseUp={(e) => handleVirtualKey('ArrowUp', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
-          >↑</button>
-          <div />
-          <button
-            onTouchStart={(e) => handleVirtualKey('ArrowLeft', true, e)}
-            onTouchEnd={(e) => handleVirtualKey('ArrowLeft', false, e)}
-            onMouseDown={(e) => handleVirtualKey('ArrowLeft', true, e)}
-            onMouseUp={(e) => handleVirtualKey('ArrowLeft', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
-          >←</button>
-          <div className="w-12 h-12 flex items-center justify-center text-white/20">•</div>
-          <button
-            onTouchStart={(e) => handleVirtualKey('ArrowRight', true, e)}
-            onTouchEnd={(e) => handleVirtualKey('ArrowRight', false, e)}
-            onMouseDown={(e) => handleVirtualKey('ArrowRight', true, e)}
-            onMouseUp={(e) => handleVirtualKey('ArrowRight', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
-          >→</button>
-          <div />
-          <button
-            onTouchStart={(e) => handleVirtualKey('ArrowDown', true, e)}
-            onTouchEnd={(e) => handleVirtualKey('ArrowDown', false, e)}
-            onMouseDown={(e) => handleVirtualKey('ArrowDown', true, e)}
-            onMouseUp={(e) => handleVirtualKey('ArrowDown', false, e)}
-            className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center active:bg-white/50"
-          >↓</button>
-          <div />
-        </div>
-
-        {/* Action Button Right */}
-        <div className="absolute bottom-12 right-12 pointer-events-auto opacity-40 hover:opacity-80 transition-opacity">
-          <button
-            onTouchStart={(e) => handleVirtualKey('Space', true, e)}
-            onTouchEnd={(e) => handleVirtualKey('Space', false, e)}
-            onMouseDown={(e) => handleVirtualKey('Space', true, e)}
-            onMouseUp={(e) => handleVirtualKey('Space', false, e)}
-            className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold active:bg-white/50 border-4 border-white/10"
-          >A</button>
-        </div>
-      </div>
+      <VirtualControls inputRef={inputRef} isVisible={isTouchDevice} />
 
       {runtimeError ? (
         <div className="absolute inset-0 flex items-center justify-center bg-black/90 text-red-500 p-8 text-center font-mono z-20">
