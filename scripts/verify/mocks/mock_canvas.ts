@@ -21,6 +21,8 @@ export class MockContext {
     moveTo(x: number, y: number) { }
     lineTo(x: number, y: number) { }
     arc(x: number, y: number, r: number, sa: number, ea: number) { }
+    ellipse(x: number, y: number, radiusX: number, radiusY: number, rotation: number, startAngle: number, endAngle: number, counterclockwise?: boolean) { }
+    rect(x: number, y: number, w: number, h: number) { }
     fill() { }
     stroke() { }
     fillRect(x: number, y: number, w: number, h: number) { }

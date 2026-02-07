@@ -114,6 +114,7 @@ class Vector {
     
     // Static Utilities
     static distance(v1, v2) { return Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2)); }
+    static dist(v1, v2) { return Vector.distance(v1, v2); } // Alias for consistency with Vector.ts
     static add(v1, v2) { return new Vector(v1.x + v2.x, v1.y + v2.y); }
     static sub(v1, v2) { return new Vector(v1.x - v2.x, v1.y - v2.y); }
     static mult(v, n) { return new Vector(v.x * n, v.y * n); }
@@ -122,32 +123,6 @@ class Vector {
     static fromAngle(angle, length = 1) { return new Vector(length * Math.cos(angle), length * Math.sin(angle)); }
 }
 
-class GameObject {
-    constructor(x, y, radius = 10, color = '#ffffff') {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.color = color;
-        this.active = true;
-        this.velocity = new Vector(0, 0);
-    }
-    
-    update(dt, state, w, h) {
-        if (!this.active) return;
-        this.x += this.velocity.x * dt;
-        this.y += this.velocity.y * dt;
-    }
-    
-    draw(ctx) {
-        if (!this.active) return;
-        ctx.save();
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    }
-}
 
 class RetroAudio {
     constructor() {
