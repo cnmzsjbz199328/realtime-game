@@ -28,6 +28,27 @@ GenGame Studio is a cutting-edge platform that leverages Large Language Models (
 - **Game Engine**: Custom lightweight HTML5 Canvas interface.
 - **AI Integration**: Unified AI Backend Proxy.
 
+### 🛡️ Deterministic API Injection System
+
+To ensure stability in AI-generated code, we implemented a rigorous "Closed-Loop" injection system:
+
+1.  **Static Method Pre-fabrication (Runtime)**
+    - The `Vector` class is fully implemented in TypeScript (`core/runtime/std/Vector.ts`) with a comprehensive suite of static methods (e.g., `Vector.add`, `Vector.mult`).
+    - These are injected into the game sandbox via `HeadlessSandbox` and `InjectionSource`, ensuring consistent behavior across all environments.
+
+2.  **Prompt Whitelisting (Design)**
+    - **Closed List Strategy**: The AI is explicitly restricted to a whitelist of available APIs.
+    - **Anti-Hallucination**: Prompts explicitly warn against using non-existent methods (e.g., "Do not use `v.add()`, use `Vector.add(v1, v2)`").
+
+3.  **Stage-Specific Prompts (Orchestration)**
+    - **Architect**: Defines the technical constraints and API usage rules in the Game Design Document.
+    - **Engineer**: Focuses on implementation while strictly adhering to the "No `this`" and "No Global State" rules.
+    - **Fixer**: Analyzes runtime errors and cross-references them with the API whitelist to auto-correct hallucinations (e.g., changing `v.mag()` to `Vector.mag(v)`).
+
+4.  **Frontend Pre-check (Verification)**
+    - The `HeadlessBrowserValidator` (QA) runs a synchronized Mock Environment that mirrors the production runtime 1:1.
+    - This ensures that code passing QA will consistently run in the browser without "undefined function" errors.
+
 ### 📂 Project Structure
 
 - `/api`: Public serverless entry points (optimized for Vercel Hobby Plan).
@@ -93,6 +114,27 @@ GenGame Studio 是一个利用大语言模型（LLM）实时生成高质量 HTML
 - **数据库**: Prisma ORM + PostgreSQL (Neon/Supabase 托管)。
 - **游戏引擎**: 自研轻量级 HTML5 Canvas 运行环境。
 - **AI 集成**: 统一 AI 后端代理服务。
+
+### 🛡️ 确定性 API 注入系统
+
+为了确保 AI 生成代码的稳定性，我们实施了一套严格的“闭环”注入系统：
+
+1.  **静态方法预制 (运行时)**
+    - `Vector` 类在 TypeScript (`core/runtime/std/Vector.ts`) 中完整实现，包含全套静态方法（如 `Vector.add`, `Vector.mult`）。
+    - 这些方法通过 `HeadlessSandbox` 和 `InjectionSource` 注入到游戏沙箱中，确保环境一致性。
+
+2.  **提示词白名单 (设计)**
+    - **封闭列表策略**: AI 被明确限制在可用 API 的白名单内。
+    - **反幻觉机制**: 提示词明确警告禁止使用不存在的方法（例如：“禁止使用 `v.add()`，必须使用 `Vector.add(v1, v2)`”）。
+
+3.  **各阶段提示词特异性 (编排)**
+    - **架构师 (Architect)**: 在设计阶段将 API 约束写入技术规格书 (Tech Spec)。
+    - **工程师 (Engineer)**: 专注于逻辑实现，同时严格遵守“无 `this`”和“无全局变量”规则。
+    - **修复者 (Fixer)**: 分析运行时错误，并对照 API 白名单自动纠正幻觉（例如自动将 `v.mag()` 修正为 `Vector.mag(v)`）。
+
+4.  **前端代码预检 (验证)**
+    - `HeadlessBrowserValidator` (QA) 运行一个与生产环境 1:1 同步的 Mock 环境。
+    - 确保通过 QA 的代码在浏览器中运行绝对稳定，消除“未定义方法”错误。
 
 ### 📂 项目结构
 
