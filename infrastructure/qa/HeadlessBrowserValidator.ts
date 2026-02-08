@@ -42,9 +42,12 @@ export class HeadlessBrowserValidator implements IGameValidator {
 
                 if (!hasVectorRedef) {
                     // Define Mock Vector locally if needed
+                    // This matches the whitelist API defined in prompts
                     class MockVector {
                         x: number; y: number;
                         constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+
+                        // Instance methods (for backward compatibility)
                         add(v: any) { this.x += v.x; this.y += v.y; return this; }
                         sub(v: any) { this.x -= v.x; this.y -= v.y; return this; }
                         multiplyScalar(s: number) { this.x *= s; this.y *= s; return this; }
@@ -55,7 +58,73 @@ export class HeadlessBrowserValidator implements IGameValidator {
                             return this;
                         }
                         copy() { return new MockVector(this.x, this.y); }
-                        static distance(v1: any, v2: any) { return Math.sqrt((v1.x - v2.x) ** 2 + (v1.y - v2.y) ** 2); }
+
+                        // Static methods - COMPLETE WHITELIST API
+                        // Basic Operations
+                        static add(v1: any, v2: any) { return new MockVector(v1.x + v2.x, v1.y + v2.y); }
+                        static sub(v1: any, v2: any) { return new MockVector(v1.x - v2.x, v1.y - v2.y); }
+                        static mult(v: any, n: number) { return new MockVector(v.x * n, v.y * n); }
+                        static div(v: any, n: number) { return new MockVector(v.x / n, v.y / n); }
+
+                        // Distance
+                        static distance(v1: any, v2: any) {
+                            const dx = v1.x - v2.x;
+                            const dy = v1.y - v2.y;
+                            return Math.sqrt(dx * dx + dy * dy);
+                        }
+                        static dist(v1: any, v2: any) { return MockVector.distance(v1, v2); }
+
+                        // Magnitude
+                        static mag(v: any) { return Math.sqrt(v.x * v.x + v.y * v.y); }
+                        static magSq(v: any) { return v.x * v.x + v.y * v.y; }
+                        static normalize(v: any) {
+                            const m = MockVector.mag(v);
+                            if (m === 0) return new MockVector(0, 0);
+                            return new MockVector(v.x / m, v.y / m);
+                        }
+                        static setMag(v: any, n: number) {
+                            const normalized = MockVector.normalize(v);
+                            return new MockVector(normalized.x * n, normalized.y * n);
+                        }
+                        static limit(v: any, max: number) {
+                            const m = MockVector.mag(v);
+                            if (m > max) return MockVector.setMag(v, max);
+                            return new MockVector(v.x, v.y);
+                        }
+
+                        // Angles
+                        static heading(v: any) { return Math.atan2(v.y, v.x); }
+                        static rotate(v: any, angle: number) {
+                            const newHeading = MockVector.heading(v) + angle;
+                            const m = MockVector.mag(v);
+                            return new MockVector(Math.cos(newHeading) * m, Math.sin(newHeading) * m);
+                        }
+                        static angleBetween(v1: any, v2: any) {
+                            const dot = MockVector.dot(v1, v2);
+                            const val = Math.max(-1, Math.min(1, dot / (MockVector.mag(v1) * MockVector.mag(v2))));
+                            return Math.acos(val);
+                        }
+
+                        // Interpolation
+                        static lerp(v1: any, v2: any, amt: number) {
+                            return new MockVector(
+                                v1.x + (v2.x - v1.x) * amt,
+                                v1.y + (v2.y - v1.y) * amt
+                            );
+                        }
+
+                        // Products
+                        static dot(v1: any, v2: any) { return v1.x * v2.x + v1.y * v2.y; }
+                        static cross(v1: any, v2: any) { return v1.x * v2.y - v1.y * v2.x; }
+
+                        // Creation
+                        static random2D() {
+                            const angle = Math.random() * Math.PI * 2;
+                            return new MockVector(Math.cos(angle), Math.sin(angle));
+                        }
+                        static fromAngle(angle: number, length = 1) {
+                            return new MockVector(length * Math.cos(angle), length * Math.sin(angle));
+                        }
                     }
                     argNames.push('Vector');
                     argValues.push(MockVector);

@@ -166,7 +166,7 @@ export class Vector {
         return new Vector(this.x, this.y);
     }
 
-    // --- Static Utilities ---
+    // --- Static Utilities - Basic Operations ---
     static distance(v1: { x: number, y: number }, v2: { x: number, y: number }): number {
         const dx = v1.x - v2.x;
         const dy = v1.y - v2.y;
@@ -200,5 +200,62 @@ export class Vector {
 
     static fromAngle(angle: number, length: number = 1): Vector {
         return new Vector(length * Math.cos(angle), length * Math.sin(angle));
+    }
+
+    // --- Static Utilities - Advanced Operations (Pure Functions) ---
+    static mag(v: { x: number, y: number }): number {
+        return Math.sqrt(v.x * v.x + v.y * v.y);
+    }
+
+    static magSq(v: { x: number, y: number }): number {
+        return v.x * v.x + v.y * v.y;
+    }
+
+    static normalize(v: { x: number, y: number }): Vector {
+        const m = Math.sqrt(v.x * v.x + v.y * v.y);
+        if (m === 0) return new Vector(0, 0);
+        return new Vector(v.x / m, v.y / m);
+    }
+
+    static setMag(v: { x: number, y: number }, n: number): Vector {
+        const normalized = Vector.normalize(v);
+        return new Vector(normalized.x * n, normalized.y * n);
+    }
+
+    static limit(v: { x: number, y: number }, max: number): Vector {
+        const m = Vector.mag(v);
+        if (m > max) return Vector.setMag(v, max);
+        return new Vector(v.x, v.y);
+    }
+
+    static heading(v: { x: number, y: number }): number {
+        return Math.atan2(v.y, v.x);
+    }
+
+    static rotate(v: { x: number, y: number }, angle: number): Vector {
+        const newHeading = Vector.heading(v) + angle;
+        const m = Vector.mag(v);
+        return new Vector(Math.cos(newHeading) * m, Math.sin(newHeading) * m);
+    }
+
+    static lerp(v1: { x: number, y: number }, v2: { x: number, y: number }, amt: number): Vector {
+        return new Vector(
+            v1.x + (v2.x - v1.x) * amt,
+            v1.y + (v2.y - v1.y) * amt
+        );
+    }
+
+    static dot(v1: { x: number, y: number }, v2: { x: number, y: number }): number {
+        return v1.x * v2.x + v1.y * v2.y;
+    }
+
+    static cross(v1: { x: number, y: number }, v2: { x: number, y: number }): number {
+        return v1.x * v2.y - v1.y * v2.x;
+    }
+
+    static angleBetween(v1: { x: number, y: number }, v2: { x: number, y: number }): number {
+        const dot = Vector.dot(v1, v2);
+        const val = Math.max(-1, Math.min(1, dot / (Vector.mag(v1) * Vector.mag(v2))));
+        return Math.acos(val);
     }
 }

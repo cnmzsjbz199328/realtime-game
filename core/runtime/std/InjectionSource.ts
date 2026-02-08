@@ -112,7 +112,7 @@ class Vector {
 
     copy() { return new Vector(this.x, this.y); }
     
-    // Static Utilities
+    // Static Utilities - Basic Operations
     static distance(v1, v2) { return Math.sqrt(Math.pow(v1.x - v2.x, 2) + Math.pow(v1.y - v2.y, 2)); }
     static dist(v1, v2) { return Vector.distance(v1, v2); } // Alias for consistency with Vector.ts
     static add(v1, v2) { return new Vector(v1.x + v2.x, v1.y + v2.y); }
@@ -121,6 +121,43 @@ class Vector {
     static div(v, n) { return new Vector(v.x / n, v.y / n); }
     static random2D() { const a = Math.random() * Math.PI * 2; return new Vector(Math.cos(a), Math.sin(a)); }
     static fromAngle(angle, length = 1) { return new Vector(length * Math.cos(angle), length * Math.sin(angle)); }
+    
+    // Static Utilities - Advanced Operations (Pure Functions)
+    static mag(v) { return Math.sqrt(v.x * v.x + v.y * v.y); }
+    static magSq(v) { return v.x * v.x + v.y * v.y; }
+    static normalize(v) {
+        const m = Math.sqrt(v.x * v.x + v.y * v.y);
+        if (m === 0) return new Vector(0, 0);
+        return new Vector(v.x / m, v.y / m);
+    }
+    static setMag(v, n) {
+        const normalized = Vector.normalize(v);
+        return new Vector(normalized.x * n, normalized.y * n);
+    }
+    static limit(v, max) {
+        const m = Vector.mag(v);
+        if (m > max) return Vector.setMag(v, max);
+        return new Vector(v.x, v.y);
+    }
+    static heading(v) { return Math.atan2(v.y, v.x); }
+    static rotate(v, angle) {
+        const newHeading = Vector.heading(v) + angle;
+        const m = Vector.mag(v);
+        return new Vector(Math.cos(newHeading) * m, Math.sin(newHeading) * m);
+    }
+    static lerp(v1, v2, amt) {
+        return new Vector(
+            v1.x + (v2.x - v1.x) * amt,
+            v1.y + (v2.y - v1.y) * amt
+        );
+    }
+    static dot(v1, v2) { return v1.x * v2.x + v1.y * v2.y; }
+    static cross(v1, v2) { return v1.x * v2.y - v1.y * v2.x; }
+    static angleBetween(v1, v2) {
+        const dot = Vector.dot(v1, v2);
+        const val = Math.max(-1, Math.min(1, dot / (Vector.mag(v1) * Vector.mag(v2))));
+        return Math.acos(val);
+    }
 }
 
 

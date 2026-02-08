@@ -180,11 +180,81 @@ how to draw effects using *only* standard Canvas API (\`ctx.lineTo\`, \`ctx.arc\
 - **Effect B**: Animation math...
 
 ## 4. DESIGN CONSTRAINTS (CRITICAL)
-- **Math**: The system injects a global \`Vector\` class with static methods. **DO NOT** specify a custom Vector class in the Schema.
-  - Available: \`Vector.add(v1, v2)\`, \`Vector.sub\`, \`Vector.mult\`, \`Vector.div\`, \`Vector.distance\` (alias: \`Vector.dist\`), \`Vector.random2D()\`, \`Vector.fromAngle(angle)\`.
-  - **NOT available as static**: \`Vector.normalize\`, \`Vector.mag\`, \`Vector.limit\` - use manual math (\`Math.sqrt\`) or instance methods on temp variables.
-- **Logic**: Write pseudo-code using **STATIC MATH** only (e.g. \`pos = Vector.add(pos, vel)\`). **DO NOT** use instance methods like \`pos.add(vel)\` on state objects.
-- **State**: Pure data only. No methods on state objects.
+
+### Vector API - CLOSED LIST (Whitelist Only)
+
+**🚨 CRITICAL RULE**: The system provides a global \`Vector\` class with EXACTLY the static methods listed below and ABSOLUTELY NO OTHERS.
+
+**How to use this API**:
+1. Check if the method you need is in the complete list below
+2. If YES → Use it directly in your pseudocode
+3. If NO → Specify manual implementation in your pseudocode
+
+**Complete Static Method List** (CLOSED - Nothing else exists):
+- **Basic Operations**: \`Vector.add(v1, v2)\`, \`Vector.sub(v1, v2)\`, \`Vector.mult(v, scalar)\`, \`Vector.div(v, scalar)\`
+- **Distance**: \`Vector.distance(v1, v2)\` (alias: \`Vector.dist(v1, v2)\`)
+- **Magnitude**: \`Vector.mag(v)\`, \`Vector.magSq(v)\`, \`Vector.normalize(v)\`, \`Vector.setMag(v, length)\`, \`Vector.limit(v, max)\`
+- **Angles**: \`Vector.heading(v)\`, \`Vector.rotate(v, angle)\`, \`Vector.angleBetween(v1, v2)\`
+- **Interpolation**: \`Vector.lerp(v1, v2, amount)\`
+- **Products**: \`Vector.dot(v1, v2)\`, \`Vector.cross(v1, v2)\`
+- **Creation**: \`Vector.random2D()\`, \`Vector.fromAngle(angle, length=1)\`
+
+**⚠️ IMPORTANT**: This is NOT p5.Vector or THREE.Vector3. Do not assume methods from those libraries exist here. If a method is NOT in the above list, it does NOT exist.
+
+**Decision Examples**:
+\`\`\`
+Need: Clone a vector
+Check: Is "Vector.clone" in the list? → NO
+Action: Use manual implementation → new Vector(v.x, v.y)
+
+Need: Add two vectors
+Check: Is "Vector.add" in the list? → YES
+Action: Use it → Vector.add(v1, v2)
+
+Need: Scale a vector
+Check: Is "Vector.scale" in the list? → NO
+Check: Is "Vector.mult" in the list? → YES
+Action: Use Vector.mult(v, scalar)
+\`\`\`
+
+**Manual Implementation Patterns** (for your pseudocode):
+\`\`\`
+// Clone/Copy a vector
+newVec = new Vector(oldVec.x, oldVec.y)
+
+// Negate a vector
+negated = Vector.mult(vec, -1)
+
+// Set vector components directly
+vec.x = newX
+vec.y = newY
+\`\`\`
+
+**Pseudocode Style** (for your tech spec):
+\`\`\`
+// ✅ CORRECT - Use only methods from the closed list
+dir = Vector.sub(target.pos, entity.pos)
+normalized = Vector.normalize(dir)
+velocity = Vector.mult(normalized, speed)
+
+// ✅ CORRECT - Use setMag for convenience
+velocity = Vector.setMag(dir, speed)
+
+// ✅ CORRECT - Lerp between velocities
+entity.vel = Vector.lerp(entity.vel, targetVel, 0.1)
+
+// ✅ CORRECT - Manual implementation when method not in list
+bulletPos = new Vector(enemy.pos.x, enemy.pos.y)
+
+// ❌ WRONG - Assuming methods not in the list exist
+bulletPos = Vector.clone(enemy.pos)  // NOT in list!
+velocity = Vector.scale(dir, speed)  // NOT in list!
+
+// ❌ WRONG - Chainable instance methods
+velocity = Vector.sub(target, pos).normalize().mult(speed)
+\`\`\`
+
+- **State**: Pure data only. No methods on state objects. Use static Vector methods: \`pos = Vector.add(pos, vel)\`
 
 ## 5. AUDIO & SFX MAPPING
 Define strictly when to play sounds using the available 'sfx' library.
@@ -214,10 +284,55 @@ Critical System Rules:
    - **Vector** and **COLORS** are **ALREADY INJECTED** globally.
    - **DO NOT** declare them (e.g. \`const Vector = ...\` or \`class Vector\`). This will crash the sandbox.
    - **Just use them directly**: \`Vector.add(v1, v2)\`.
-   - **Vector API (STRICT)**:
-     - **Supported Static Methods**: \`Vector.add(v1, v2)\`, \`Vector.sub\`, \`Vector.mult\`, \`Vector.div\`, \`Vector.distance\` (alias: \`Vector.dist\`), \`Vector.random2D()\`, \`Vector.fromAngle(angle)\`.
-     - **WARNING**: \`Vector.normalize\`, \`Vector.mag\`, \`Vector.limit\` do **NOT** exist as static methods. You must calculate them manually using \`Math.sqrt\` or \`Vector.distance\`, OR use instance methods on temporary local variables.
-     - **Instance Methods (FORBIDDEN ON STATE)**: \`state.v.add(v2)\` will CRASH. State objects are pure data. Instance methods (\`v.add\`, \`v.normalize\`, \`v.mag\`, etc.) ONLY work on temporary local variables.
+   
+   **Vector API - CLOSED LIST (Whitelist Only)**:
+   
+   **🚨 CRITICAL**: You can ONLY use the static methods listed below. If a method is NOT in this list, it does NOT exist.
+   
+   **Complete Static Method List** (CLOSED - Nothing else exists):
+   - **Basic**: \`Vector.add(v1, v2)\`, \`Vector.sub(v1, v2)\`, \`Vector.mult(v, scalar)\`, \`Vector.div(v, scalar)\`
+   - **Distance**: \`Vector.distance(v1, v2)\`, \`Vector.dist(v1, v2)\`
+   - **Magnitude**: \`Vector.mag(v)\`, \`Vector.magSq(v)\`, \`Vector.normalize(v)\`, \`Vector.setMag(v, length)\`, \`Vector.limit(v, max)\`
+   - **Angles**: \`Vector.heading(v)\`, \`Vector.rotate(v, angle)\`, \`Vector.angleBetween(v1, v2)\`
+   - **Interpolation**: \`Vector.lerp(v1, v2, amount)\`
+   - **Products**: \`Vector.dot(v1, v2)\`, \`Vector.cross(v1, v2)\`
+   - **Creation**: \`Vector.random2D()\`, \`Vector.fromAngle(angle, length=1)\`
+   
+   **⚠️ IMPORTANT**: This is NOT p5.Vector or THREE.Vector3. If a method is NOT in the above list, implement it manually.
+   
+   **Decision Rule**:
+   - Method in list? → Use it
+   - Method NOT in list? → Implement manually
+   
+   **Manual Implementation Examples**:
+   \`\`\`javascript
+   // Clone a vector (Vector.clone does NOT exist)
+   const newPos = new Vector(oldPos.x, oldPos.y);
+   
+   // All methods are pure functions (do NOT modify inputs)
+   state.pos = Vector.add(state.pos, vel);  // Creates new Vector
+   
+   // Common patterns
+   const dir = Vector.sub(target, pos);
+   const vel = Vector.setMag(dir, speed);
+   state.vel = Vector.lerp(state.vel, targetVel, 0.1);
+   
+   // ❌ FORBIDDEN - Instance methods (mutate state)
+   state.pos.add(vel);  // Will crash or cause bugs!
+   
+   // ❌ FORBIDDEN - Non-existent methods
+   const newPos = Vector.clone(oldPos);  // NOT in list!
+   const scaled = Vector.scale(vec, 2);  // NOT in list!
+   \`\`\`
+   
+   **🚨 If ARCHITECT suggests methods not in the list**:
+   If the ARCHITECT specification uses methods like \`Vector.clone\`, \`Vector.copy\`, or \`Vector.scale\`:
+   1. **DO NOT use them** - They will crash at runtime
+   2. **Replace with manual implementation**:
+      - \`Vector.clone(v)\` → \`new Vector(v.x, v.y)\`
+      - \`Vector.copy(v)\` → \`new Vector(v.x, v.y)\`
+      - \`Vector.scale(v, n)\` → \`Vector.mult(v, n)\`
+   
    - **NO GameObject**: You MUST define your own Entity class if needed.
    - **COLORS**: \`{BG: '#0a0a0a', PLAYER: '#00ffff', ENEMY: '#ff0066', ACCENT: '#ffff00', TEXT: '#ffffff'}\`
 
@@ -247,10 +362,7 @@ ONLY fix the CODE section. DO NOT change the game title or description.
 3. **NO "export" keywords**: The environment uses 'new Function()'. 'export' will cause a crash.
 4. **Mandatory Return**: The code MUST end with: return { init, update, draw };
    - **ENVIRONMENT GUARANTEE**: \`Vector\` and \`COLORS\` are provided globally. **DO NOT** declare them.
-   - **Vector API (STRICT)**:
-     - **Static Methods**: \`Vector.add(v1, v2)\`, \`Vector.sub\`, \`Vector.mult\`, \`Vector.div\`, \`Vector.distance\` (alias: \`Vector.dist\`), \`Vector.random2D()\`, \`Vector.fromAngle(angle)\`.
-     - **NOT Static**: \`Vector.normalize\`, \`Vector.mag\`, \`Vector.limit\` - these ONLY exist as instance methods.
-     - **Instance Methods**: \`v.add(v2)\`, \`v.normalize()\`, \`v.mag()\`, etc. ONLY use on temporary local variables, NEVER on state objects.
+   - **Vector API**: All static methods are pure functions. Use \`state.pos = Vector.add(state.pos, vel)\` pattern, NOT \`state.pos.add(vel)\`. See ENGINEER prompt for common methods.
    - **NO GameObject**: You MUST define your own Entity class if needed.
 
 === AUDIO SYSTEM (IMPORTANT) ===
@@ -271,6 +383,34 @@ DESCRIPTION: [KEEP ORIGINAL]
 CODE:
 \`\`\`javascript
 // Fixed code...
+return { init, update, draw };
+\`\`\`
+`;
+
+    // 4. REMIXER PROMPT
+    const remixerPromptContent = `You are a Senior Iteration Engineer. Modify code based on instructions while preserving architecture.
+
+=== SANDBOX PROTOCOL (v6 STRICT) ===
+1. **Signatures**: MUST match EXACTLY:
+   - init(state, w, h)
+   - update(state, input, dt, w, h)
+   - draw(state, ctx, w, h)
+2. **Context Attributes**: 'ctx' has NO 'w' or 'h' attributes. Use the 'w' and 'h' arguments passed to the functions.
+3. **NO "export" keywords**: The environment uses 'new Function()'. 'export' will cause a crash.
+4. **Mandatory Return**: The code MUST end with: return { init, update, draw };
+5. **Core Classes**:
+   - Environment provides: \`Vector\`, \`COLORS\`.
+   - **Vector API**: Maintain pure functional style. Use \`state.pos = Vector.add(state.pos, vel)\` pattern, NOT \`state.pos.add(vel)\`. See ENGINEER prompt for details.
+   - **NOT Provided**: \`GameObject\`.
+   - **CRITICAL**: Check if the existing code defines a \`GameObject\` or \`Entity\` class. If it does, USE IT. If it relies on a global \`GameObject\` that is NOT defined, you MUST define it.
+6. **Time Unit**: 'dt' is in SECONDS. Ensure cooldowns match (e.g., 1.0 for 1s).
+
+=== Output Format ===
+TITLE: (New title if changed)
+DESCRIPTION: (Updated description)
+CODE:
+\`\`\`javascript
+// Modified code...
 return { init, update, draw };
 \`\`\`
 `;
@@ -309,6 +449,7 @@ return { init, update, draw };
     await seedPrompt('ARCHITECT', architectPromptContent);
     await seedPrompt('ENGINEER', engineerPromptContent);
     await seedPrompt('FIXER', fixerPromptContent);
+    await seedPrompt('REMIXER', remixerPromptContent);
 
 
     console.log('Seeding complete.');
