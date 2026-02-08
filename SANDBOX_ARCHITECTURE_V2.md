@@ -1,4 +1,4 @@
-# Sandbox Architecture Design Document (v2.0)
+# Sandbox Architecture Design Document (v2.1)
 
 ## Overview
 This document details the **Sandbox Environment 2.0** architecture used in the `realtime-game` (GenGame) project. 
