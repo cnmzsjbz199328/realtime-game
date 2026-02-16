@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Music Engine V2 - Polyphony & ADSR</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --text-color: #00ffea;
+            --panel-bg: #1e1e1e;
+            --highlight: #00d9c0;
+            --track-1: #ff0055;
+            --track-2: #00ffea;
+            --track-3: #ffd700;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--panel-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            border: 1px solid var(--text-color);
+            max-width: 800px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-top: 0;
+            text-shadow: 0 0 10px rgba(0, 255, 234, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        select,
+        button {
+            background-color: #000;
+            color: var(--text-color);
+            border: 1px solid var(--text-color);
+            padding: 12px 24px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover,
+        select:hover {
+            background-color: var(--text-color);
+            color: #000;
+            box-shadow: 0 0 10px var(--text-color);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .visualizer-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .track-visualizer {
+            width: 100%;
+            height: 40px;
+            background: #000;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .track-label {
+            position: absolute;
+            left: 10px;
+            font-size: 0.7rem;
+            color: #666;
+            z-index: 2;
+        }
+
+        .note-indicator {
+            width: 0%;
+            height: 100%;
+            transition: width 0.1s linear, opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .track-1 .note-indicator {
+            background-color: var(--track-1);
+            box-shadow: 0 0 10px var(--track-1);
+        }
+
+        .track-2 .note-indicator {
+            background-color: var(--track-2);
+            box-shadow: 0 0 10px var(--track-2);
+        }
+
+        .track-3 .note-indicator {
+            background-color: var(--track-3);
+            box-shadow: 0 0 10px var(--track-3);
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #aaa;
+            height: 1.2em;
+        }
+
+        .info {
+            font-size: 0.8rem;
+            color: #555;
+            margin-top: 30px;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>SYNTH ENGINE V2</h1>
+        <p>Polyphonic • ADSR Envelopes • Multi-Track</p>
+
+        <div class="controls">
+            <select id="songSelect">
+                <option value="mario_theme">Super Mario Bros (Main Theme)</option>
+                <option value="zelda_lullaby">Zelda's Lullaby (Orchestral)</option>
+                <option value="megalovania">Megalovania (Fast & Complex)</option>
+                <option value="fur_elise">Fur Elise (Classical Piano)</option>
+            </select>
+            <button id="playBtn">▶ ENGAGE</button>
+            <button id="stopBtn" disabled>■ ABORT</button>
+        </div>
+
+        <div class="visualizer-container">
+            <div class="track-visualizer track-1">
+                <div class="track-label">LEAD (Square/Pulse)</div>
+                <div class="note-indicator" id="vis-lead"></div>
+            </div>
+            <div class="track-visualizer track-2">
+                <div class="track-label">HARMONY (Triangle/Flute)</div>
+                <div class="note-indicator" id="vis-harmony"></div>
+            </div>
+            <div class="track-visualizer track-3">
+                <div class="track-label">BASS/DRUMS (Saw/Noise)</div>
+                <div class="note-indicator" id="vis-bass"></div>
+            </div>
+        </div>
+
+        <div class="status" id="status">System Ready. Awaiting Command.</div>
+
+        <div class="info">
+            Generating audio in real-time. No MP3s used. <br>
+            All waveforms compiled from raw frequency data.
+        </div>
+    </div>
+
+    <script>
+        // --- 1. FREQUENCY TABLE (Just Maths) ---
+        const NOTE_FREQS = {
+            'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65, 'A3': 220.00, 'A#3': 233.08, 'B3': 246.94,
+            'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 391.99, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+            'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.00, 'A#5': 932.33, 'B5': 987.77,
+            'C6': 1046.50, 'D6': 1174.66, 'E6': 1318.51, 'G6': 1567.98
+        };
+
+        // --- 2. COMPLEX SONG DATA (Multi-Track) ---
+        const SONGS = {
+            mario_theme: {
+                tempo: 180,
+                tracks: [
+                    // Track 1: Lead Melody (Square Wave - Classic NES)
+                    {
+                        instrument: { type: 'square', volume: 0.15, attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.1 },
+                        visualId: 'vis-lead',
+                        notes: [
+                            ['E5', 0.5], ['E5', 1.0], ['E5', 1.0], ['C5', 0.5], ['E5', 1.0], ['G5', 2.0], ['G4', 2.0], // Intro
+                            ['C5', 1.5], ['G4', 1.5], ['E4', 1.5], ['A4', 1.0], ['B4', 1.0], ['A#4', 0.5], ['A4', 1.0], // Theme A
+                            ['G4', 0.6], ['E5', 0.6], ['G5', 0.6], ['A5', 1.0], ['F5', 0.5], ['G5', 1.0],
+                            ['E5', 1.0], ['C5', 0.5], ['D5', 0.5], ['B4', 1.0]
+                        ]
+                    },
+                    // Track 2: Bass Line (Triangle/Sawtooth)
+                    {
+                        instrument: { type: 'triangle', volume: 0.2, attack: 0.02, decay: 0.2, sustain: 0.2, release: 0.2 },
+                        visualId: 'vis-bass',
+                        notes: [
+                            ['D3', 0.5], ['D3', 1.0], ['D3', 1.0], ['D3', 0.5], ['D3', 1.0], ['G3', 2.0], ['G2', 2.0], // Intro harmony
+                            ['E3', 1.5], ['C3', 1.5], ['G2', 1.5], ['F2', 1.0], ['G2', 1.0], ['F#2', 0.5], ['F2', 1.0], // Theme A harmony
+                            ['C3', 0.6], ['G3', 0.6], ['C4', 0.6], ['F3', 1.0], ['D3', 0.5], ['E3', 1.0],
+                            ['C3', 1.0], ['A2', 0.5], ['B2', 0.5], ['G2', 1.0]
+                        ]
+                    }
+                ]
+            },
+            zelda_lullaby: {
+                tempo: 110,
+                tracks: [
+                    // Melody: Sweet Triangle Wave
+                    {
+                        instrument: { type: 'triangle', volume: 0.15, attack: 0.1, decay: 0.3, sustain: 0.4, release: 0.8 }, // Long release for flow
+                        visualId: 'vis-lead',
+                        notes: [
+                            ['B4', 3], ['D5', 1], ['A4', 2], ['G4', 1], ['A4', 1],
+                            ['B4', 3], ['D5', 1], ['A4', 4],
+                            ['B4', 3], ['D5', 1], ['A5', 4], ['G5', 2], ['D5', 4],
+                            ['C5', 1], ['B4', 1], ['A4', 4]
+                        ]
+                    },
+                    // Arpeggio Accompaniment (Sine Wave)
+                    {
+                        instrument: { type: 'sine', volume: 0.12, attack: 0.05, decay: 0.5, sustain: 0.1, release: 0.5 },
+                        visualId: 'vis-harmony',
+                        notes: [
+                            ['G3', 0.5], ['B3', 0.5], ['D4', 0.5], ['G3', 0.5], ['B3', 0.5], ['D4', 0.5], ['G3', 0.5], ['B3', 0.5], // G chord arps
+                            ['D3', 0.5], ['F#3', 0.5], ['A3', 0.5], ['D3', 0.5], ['F#3', 0.5], ['A3', 0.5], ['D3', 0.5], ['F#3', 0.5], // D chord arps
+                            ['G3', 0.5], ['B3', 0.5], ['D4', 0.5], ['G3', 0.5], ['B3', 0.5], ['D4', 0.5], ['G3', 0.5], ['B3', 0.5],
+                            ['D3', 0.5], ['F#3', 0.5], ['A3', 0.5], ['D3', 0.5], ['F#3', 0.5], ['A3', 0.5], ['D3', 0.5], ['F#3', 0.5],
+                        ]
+                    }
+                ]
+            },
+            megalovania: {
+                tempo: 240, // Fast!
+                tracks: [
+                    // Lead
+                    {
+                        instrument: { type: 'square', volume: 0.12, attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.05 },
+                        visualId: 'vis-lead',
+                        notes: [
+                            ['D4', 1], ['D4', 1], ['D5', 2], ['A4', 3], [null, 1], ['G#4', 2], ['G4', 2], ['F4', 2],
+                            ['D4', 1], ['F4', 1], ['G4', 1]
+                        ]
+                    },
+                    // Bass (Heavy Sawtooth)
+                    {
+                        instrument: { type: 'sawtooth', volume: 0.25, attack: 0.05, decay: 0.2, sustain: 0.3, release: 0.1 },
+                        visualId: 'vis-bass',
+                        notes: [
+                            ['D2', 16], ['C2', 16], ['B1', 16], ['A#1', 16]
+                        ]
+                    }
+                ]
+            },
+            fur_elise: {
+                tempo: 160,
+                tracks: [
+                    // Right Hand (Melody - Piano-like Sine/Triangle mix)
+                    {
+                        instrument: { type: 'triangle', volume: 0.18, attack: 0.05, decay: 0.1, sustain: 0.1, release: 0.1 },
+                        visualId: 'vis-lead',
+                        notes: [
+                            // Measure 1 & 2
+                            ['E5', 1], ['D#5', 1], ['E5', 1], ['D#5', 1], ['E5', 1], ['B4', 1], ['D5', 1], ['C5', 1],
+                            ['A4', 2], [null, 1], ['C4', 1], ['E4', 1], ['A4', 1],
+                            ['B4', 2], [null, 1], ['E4', 1], ['G#4', 1], ['B4', 1],
+                            ['C5', 2], [null, 1], ['E4', 1], ['E5', 1], ['D#5', 1],
+                            // Repeat Theme
+                            ['E5', 1], ['D#5', 1], ['E5', 1], ['D#5', 1], ['E5', 1], ['B4', 1], ['D5', 1], ['C5', 1],
+                            ['A4', 2], [null, 1], ['C4', 1], ['E4', 1], ['A4', 1],
+                            ['B4', 2], [null, 1], ['E4', 1], ['C5', 1], ['B4', 1],
+                            ['A4', 4]
+                        ]
+                    },
+                    // Left Hand (Arpeggio Accompaniment)
+                    {
+                        instrument: { type: 'sine', volume: 0.15, attack: 0.05, decay: 0.3, sustain: 0.2, release: 0.3 },
+                        visualId: 'vis-harmony',
+                        notes: [
+                            // Intro wait
+                            [null, 8],
+                            // A Minor Arp
+                            ['A2', 1], ['E3', 1], ['A3', 1], [null, 2], [null, 1],
+                            // E Major Arp
+                            ['E2', 1], ['E3', 1], ['G#3', 1], [null, 2], [null, 1],
+                            // A Minor Arp
+                            ['A2', 1], ['E3', 1], ['A3', 1], [null, 3],
+                            // Repeat Payload
+                            [null, 8],
+                            ['A2', 1], ['E3', 1], ['A3', 1], [null, 3],
+                            ['E2', 1], ['E3', 1], ['G#3', 1], [null, 3],
+                            ['A2', 1], ['A3', 4]
+                        ]
+                    }
+                ]
+            }
+        };
+
+        // --- 3. SYNTHESIS ENGINE (The Core) ---
+        class SynthEngine {
+            constructor() {
+                this.ctx = null;
+                this.master = null;
+                this.isPlaying = false;
+                this.activeNodes = []; // Track oscillators to stop them
+                this.timeouts = [];    // Track scheduler to clear on stop
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                    this.master = this.ctx.createGain();
+                    this.master.gain.value = 0.5;
+                    this.master.connect(this.ctx.destination);
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            // The "Note" function now accepts rich ADSR parameters
+            playTone(freq, time, duration, instr) {
+                if (!freq) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = instr.type || 'sine';
+                osc.frequency.setValueAtTime(freq, time);
+
+                // ADSR ENVELOPE LOGIC
+                // Attack: Volume 0 -> Max
+                gain.gain.setValueAtTime(0, time);
+                gain.gain.linearRampToValueAtTime(instr.volume || 0.2, time + instr.attack);
+
+                // Decay: Max -> Sustain Level
+                gain.gain.exponentialRampToValueAtTime((instr.volume || 0.2) * 0.7, time + instr.attack + instr.decay);
+
+                // Sustain: Handled by duration (we hold this level until release)
+
+                // Release: Sustain -> 0
+                // We start release slightly before the note ends to avoid clicking
+                const releaseStart = time + duration - instr.release;
+                // Ensure release doesn't start before decay finishes (simple check)
+                const safeReleaseStart = Math.max(releaseStart, time + instr.attack + instr.decay);
+
+                gain.gain.setValueAtTime((instr.volume || 0.2) * 0.7, safeReleaseStart);
+                gain.gain.exponentialRampToValueAtTime(0.001, safeReleaseStart + instr.release);
+
+                osc.connect(gain);
+                gain.connect(this.master);
+
+                osc.start(time);
+                osc.stop(time + duration + instr.release); // Stop after release tail
+
+                this.activeNodes.push(osc);
+            }
+
+            playSong(key) {
+                this.stop();
+                this.init();
+                this.isPlaying = true;
+                updateStatus(`Synthesizing: ${key.toUpperCase()}...`);
+                toggleButtons(true);
+
+                const song = SONGS[key];
+                const startTime = this.ctx.currentTime + 0.1;
+                const beatTime = 60 / song.tempo;
+
+                // Schedule each track independently
+                song.tracks.forEach((track, trackIndex) => {
+                    let cursor = 0;
+                    track.notes.forEach(([note, beats]) => {
+                        const duration = beats * beatTime;
+                        const time = startTime + (cursor * beatTime);
+
+                        if (note && NOTE_FREQS[note]) {
+                            // 1. Schedule Audio
+                            this.playTone(NOTE_FREQS[note], time, duration, track.instrument);
+
+                            // 2. Schedule Visuals (using setTimeout to sync with audio clock)
+                            const delayMs = (time - this.ctx.currentTime) * 1000;
+                            const tId = setTimeout(() => {
+                                triggerVisual(track.visualId, duration * 1000);
+                            }, delayMs);
+                            this.timeouts.push(tId);
+                        }
+
+                        cursor += beats;
+                    });
+                });
+
+                // Auto-stop detection (rough estimate based on longest track)
+                // ideally we calculate max duration
+            }
+
+            stop() {
+                this.activeNodes.forEach(n => {
+                    try { n.stop(); } catch (e) { }
+                });
+                this.activeNodes = [];
+                this.timeouts.forEach(t => clearTimeout(t));
+                this.timeouts = [];
+                this.isPlaying = false;
+                updateStatus('Engine Idle');
+                toggleButtons(false);
+
+                // Reset visuals
+                document.querySelectorAll('.note-indicator').forEach(el => el.style.width = '0%');
+            }
+        }
+
+        // --- 4. UI CONNECTION ---
+        const synth = new SynthEngine();
+
+        function triggerVisual(elementId, durationMs) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            // Flash visualization
+            el.style.width = '100%';
+            el.style.opacity = '1';
+
+            setTimeout(() => {
+                el.style.width = '0%';
+                el.style.opacity = '0';
+            }, durationMs * 0.8); // Fade out slightly before next note
+        }
+
+        function updateStatus(msg) {
+            document.getElementById('status').textContent = `> ${msg}`;
+        }
+
+        function toggleButtons(playing) {
+            document.getElementById('playBtn').disabled = playing;
+            document.getElementById('stopBtn').disabled = !playing;
+            document.getElementById('songSelect').disabled = playing;
+        }
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            const val = document.getElementById('songSelect').value;
+            synth.playSong(val);
+        });
+
+        document.getElementById('stopBtn').addEventListener('click', () => synth.stop());
+
+    </script>
+</body>
+
+</html>
