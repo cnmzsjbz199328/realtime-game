@@ -32,7 +32,8 @@ async function main() {
         { id: 'clicker_tycoon', description: 'Incremental game focused on resource generation, upgrades, and automated income.' },
         { id: 'slice_action', description: 'Swipe to cut objects on screen. Requires tracking pointer trails and line-intersection logic.' },
         { id: 'learning_cards', description: 'Educational logic involving flipping cards, matching pairs, or answering flashcard questions.' },
-        { id: 'word_puzzle', description: 'Grid or list interaction to find, form, or unscramble words.' }
+        { id: 'word_puzzle', description: 'Grid or list interaction to find, form, or unscramble words.' },
+        { id: 'music_composer', description: 'Procedural music generation or rhythm game using the advanced Audio Engine.' }
     ];
 
     // Helper to generate detailed instructions based on ID
@@ -115,6 +116,15 @@ async function main() {
                 break;
             case 'word_puzzle':
                 specific = `2. Data: Grid of letters. Dictionary for validation.\n3. Input: Drag across letters to form string. Check validity on release.\n4. Scoring: Longer words = exponential score. Visual connector lines.`;
+                break;
+            case 'music_composer':
+                specific = `2. Audio API: Use sfx.note(freq, duration, type).
+                - Frequency: Use 'C4', 'A#3' etc (Octaves 3-5 supported) OR raw Hz.
+                - Duration: Seconds (e.g. 0.25).
+                - Type: 'sine', 'square', 'sawtooth', 'triangle'.
+                - Example: sfx.note('C4', 0.5, 'piano') triggers a synthesized tone.
+                3. Timing: Use state.timer to schedule notes. Store song data in state and iterate index.
+                4. Visuals: Sync visual indicators (bars/circles) with note triggers.`;
                 break;
             default:
                 specific = `2. Mechanics: Implement core loop clearly.\n3. Polish: Add simple particles or color shifts for feedback.`;

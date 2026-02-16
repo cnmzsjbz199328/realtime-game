@@ -8,6 +8,9 @@ export const createMockSfx = () => {
             logs.push(`SFX: ${soundId}`);
             // console.log(`[MockAudio] Playing: ${soundId}`);
         },
+        note: (freq: string | number, duration: number, type: string) => {
+            logs.push(`NOTE: ${freq} (${duration}s, ${type})`);
+        },
         _getLogs: () => [...logs],
         _clearLogs: () => { logs.length = 0; }
     };

@@ -1,3 +1,5 @@
+// ⚠️ [SYNC REQUIRED] If you modify this file, you MUST also update the string in:
+// core/runtime/std/InjectionSource.ts
 export class RetroAudio {
     ctx: AudioContext;
     master: GainNode;
@@ -80,5 +82,46 @@ export class RetroAudio {
             osc.start(t);
             osc.stop(t + 0.05);
         }
+    }
+
+    // --- NEW: Procedural Audio API ---
+    // Ported from InjectionSource string for dev parity
+    note(freq: string | number, duration: number = 0.5, type: OscillatorType = 'sine', vol: number = 0.5) {
+        if (!this.initialized || this.ctx.state === 'suspended') this.resume();
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+
+        // Safety: Limit duration to prevent infinite loops
+        const safeDuration = Math.min(Math.max(duration, 0.05), 5.0);
+
+        osc.connect(g);
+        g.connect(this.master);
+
+        osc.type = type;
+
+        // Handling Note Names (e.g. 'C4') vs Frequencies
+        const NOTE_FREQS: Record<string, number> = {
+            'C3': 130.81, 'C#3': 138.59, 'D3': 146.83, 'D#3': 155.56, 'E3': 164.81, 'F3': 174.61, 'F#3': 185.00, 'G3': 196.00, 'G#3': 207.65, 'A3': 220.00, 'A#3': 233.08, 'B3': 246.94,
+            'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63, 'F4': 349.23, 'F#4': 369.99, 'G4': 391.99, 'G#4': 415.30, 'A4': 440.00, 'A#4': 466.16, 'B4': 493.88,
+            'C5': 523.25, 'C#5': 554.37, 'D5': 587.33, 'D#5': 622.25, 'E5': 659.25, 'F5': 698.46, 'F#5': 739.99, 'G5': 783.99, 'G#5': 830.61, 'A5': 880.00, 'A#5': 932.33, 'B5': 987.77
+        };
+
+        if (typeof freq === 'string' && NOTE_FREQS[freq]) {
+            osc.frequency.setValueAtTime(NOTE_FREQS[freq], t);
+        } else if (typeof freq === 'number' && Number.isFinite(freq)) {
+            osc.frequency.setValueAtTime(freq, t);
+        } else {
+            return; // Invalid frequency
+        }
+
+        // Simple Envelope (ADSR-lite)
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vol, t + 0.05); // Attack
+        g.gain.setValueAtTime(vol, t + safeDuration - 0.05);
+        g.gain.linearRampToValueAtTime(0.001, t + safeDuration); // Release
+
+        osc.start(t);
+        osc.stop(t + safeDuration);
     }
 }

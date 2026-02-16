@@ -173,4 +173,21 @@ GenGame Studio 是一个利用大语言模型（LLM）实时生成高质量 HTML
    ```
 
 ---
-© 2024 GenGame Studio. Built with ❤️ by cnmzsjbz199328.
+
+---
+
+### 🏗️ Core Runtime Architecture (Development Note)
+
+The game runtime environment consists of two synchronized parts to support both **Local Development** and **Code Injection**:
+
+1.  **TypeScript Source (`core/runtime/std/*.ts`)**: 
+    -   Used by `GameHarness` and `HeadlessSandbox` during local development and testing.
+    -   Provides full IDE support, type safety, and module imports.
+    -   *Example*: `core/runtime/std/RetroAudio.ts`
+
+2.  **Injection String (`core/runtime/std/InjectionSource.ts`)**:
+    -   Used for **HTML Export** and **Production Sandboxing** where dynamic imports are not available.
+    -   Contains the *stringified* version of the core classes.
+    -   *Example*: `export const LIBRARY_SOURCE = "class RetroAudio { ... }"`
+
+**⚠️ IMPORTANT**: When modifying core classes (Vector, RetroAudio), you **MUST** manually update both the TypeScript file and the Injection string to ensure consistency between development and production builds.

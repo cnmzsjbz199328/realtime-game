@@ -1,0 +1,8 @@
+{
+  "result": "FAIL",
+  "gameId": "8bit",
+  "timestamp": "2026-02-09T13-46-57-702Z",
+  "errors": [
+    "Draw Error: state is not defined"
+  ]
+}
