@@ -17,13 +17,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!topic || typeof topic !== 'string') {
             return res.status(400).json({ error: 'Topic is required' });
         }
+        const trimmedTopic = topic.trim();
+        if (trimmedTopic.length < 2 || trimmedTopic.length > 500) {
+            return res.status(400).json({ error: 'Topic must be between 2 and 500 characters' });
+        }
 
-        console.log('[API/CREATE] Topic:', topic);
+        console.log('[API/CREATE] Topic:', trimmedTopic);
 
         // Phase 1: Director Classification
         console.log('[API/CREATE] Phase 1: Director Classification');
         const director = new DirectorService();
-        const { skeletonId, expandedDesign } = await director.classify(topic);
+        const { skeletonId, expandedDesign } = await director.classify(trimmedTopic);
 
         console.log('[API/CREATE] Selected skeleton:', skeletonId);
         console.log('[API/CREATE] Design length:', expandedDesign.length);

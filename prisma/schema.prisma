@@ -14,6 +14,9 @@ model SavedGame {
   code        String   @db.Text
   likes       Int      @default(0)
   createdAt   DateTime @default(now())
+
+  @@index([likes(sort: Desc)])
+  @@index([createdAt])
 }
 
 // --- Evolution Layer Models ---
@@ -54,6 +57,9 @@ model IssueRecord {
   skeletonId  String?
   status      String   @default("PENDING") // 'PENDING', 'PROCESSED'
   createdAt   DateTime @default(now())
+
+  @@index([gameId])
+  @@index([status])
 }
 
 model OptimizationRecord {
@@ -64,4 +70,7 @@ model OptimizationRecord {
   skeletonId  String?
   status      String   @default("PENDING") // 'PENDING', 'PROCESSED'
   createdAt   DateTime @default(now())
+
+  @@index([gameId])
+  @@index([status])
 }

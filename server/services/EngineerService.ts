@@ -1,6 +1,7 @@
 import { IEngineer, GameDefinition, SkeletonContext } from '../../core/domain/types.js';
 import { callAIReasoning } from './ai-client.js';
 import { prisma } from '../lib/prisma.js';
+import { stripCodeFences, parseGameDefinition } from '../utils/parseAIResponse.js';
 
 export class EngineerService implements IEngineer {
     async generate(
@@ -67,28 +68,14 @@ ${architectSpec}
             const elapsed = Date.now() - startTime;
             console.log('[ENGINEER] AI response received in', elapsed, 'ms');
 
-            // Clean content
-            let content = contentRaw.trim();
-            if (content.startsWith('```')) {
-                content = content.replace(/^```[a-z]*\n/, '').replace(/```$/, '');
-            }
-
             console.log('[ENGINEER] Parsing game definition...');
-
-            const titleMatch = content.match(/TITLE:\s*(.+)/);
-            const descMatch = content.match(/DESCRIPTION:\s*(.+)/);
-            const codeMatch = content.match(/CODE:[\s\S]*?```(?:javascript|js)?\s*([\s\S]*?)```/);
-
-            if (!titleMatch || !descMatch || !codeMatch) {
-                console.error('[ENGINEER] Parse Failed. Content sample:', content.substring(0, 200));
+            let gameDef: GameDefinition;
+            try {
+                gameDef = parseGameDefinition(stripCodeFences(contentRaw));
+            } catch {
+                console.error('[ENGINEER] Parse Failed. Content sample:', contentRaw.substring(0, 200));
                 throw new Error('Failed to parse AI response. Expected format: TITLE, DESCRIPTION, CODE block.');
             }
-
-            const gameDef: GameDefinition = {
-                title: titleMatch[1].trim(),
-                description: descMatch[1].trim(),
-                code: codeMatch[1].trim()
-            };
 
             console.log('[ENGINEER] Game title:', gameDef.title);
             console.log('[ENGINEER] Code success. Length:', gameDef.code.length);

@@ -1,6 +1,7 @@
 import { IFixer, GameDefinition } from '../../core/domain/types.js';
 import { callAI } from './ai-client.js';
 import { prisma } from '../lib/prisma.js';
+import { stripCodeFences, parseGameDefinition } from '../utils/parseAIResponse.js';
 
 export class FixerService implements IFixer {
     async fix(game: GameDefinition, error: string): Promise<GameDefinition> {
@@ -54,27 +55,8 @@ CODE:
             const elapsed = Date.now() - startTime;
             console.log('[FIXER] AI response received in', elapsed, 'ms');
 
-            // Clean content
-            let content = contentRaw.trim();
-            if (content.startsWith('```')) {
-                content = content.replace(/^```[a-z]*\n/, '').replace(/```$/, '');
-            }
-
             console.log('[FIXER] Parsing fixed game definition...');
-
-            const titleMatch = content.match(/TITLE:\s*(.+)/);
-            const descMatch = content.match(/DESCRIPTION:\s*(.+)/);
-            const codeMatch = content.match(/CODE:[\s\S]*?```(?:javascript|js)?\s*([\s\S]*?)```/);
-
-            if (!titleMatch || !descMatch || !codeMatch) {
-                throw new Error('Failed to parse AI response. Expected format: TITLE, DESCRIPTION, CODE block.');
-            }
-
-            const fixedGame: GameDefinition = {
-                title: titleMatch[1].trim(),
-                description: descMatch[1].trim(),
-                code: codeMatch[1].trim()
-            };
+            const fixedGame = parseGameDefinition(stripCodeFences(contentRaw));
 
             console.log('[FIXER] Fixed game title:', fixedGame.title);
             console.log('[FIXER] ========== Bug Fix Complete ==========');

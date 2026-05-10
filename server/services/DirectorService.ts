@@ -2,6 +2,7 @@ import { IDirector, DirectorResult } from '../../core/domain/types.js';
 import { getSkeletonDirectory } from '../skeletons/directory.js';
 import { callAI } from './ai-client.js';
 import { prisma } from '../lib/prisma.js';
+import { stripJsonFences } from '../utils/parseAIResponse.js';
 
 export class DirectorService implements IDirector {
     async classify(topic: string): Promise<DirectorResult> {
@@ -62,8 +63,7 @@ export class DirectorService implements IDirector {
             console.log('[DIRECTOR] AI response received in', elapsed, 'ms');
 
             // Clean and parse JSON
-            let content = contentRaw.trim();
-            content = content.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+            const content = stripJsonFences(contentRaw);
 
             console.log('[DIRECTOR] Parsing classification result...');
             const result = JSON.parse(content) as DirectorResult;

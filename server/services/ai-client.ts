@@ -36,16 +36,22 @@ export async function callAIReasoning(messages: any[]): Promise<string> {
  * Shared implementation for both endpoints
  */
 async function callAIInternal(endpoint: string, messages: any[], modelName: string): Promise<string> {
-    console.log(`[AI-CLIENT] Calling ${modelName}...`);
-    console.log('[AI-CLIENT] >>> REQUEST MESSAGES >>>');
-    console.log(JSON.stringify(messages, null, 2));
-    console.log('[AI-CLIENT] <<< END REQUEST MESSAGES <<<');
+    console.log(`[AI-CLIENT] Calling ${modelName} (${messages.length} messages)...`);
 
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages })
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25_000);
+
+    let response: Response;
+    try {
+        response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages }),
+            signal: controller.signal
+        });
+    } finally {
+        clearTimeout(timeout);
+    }
 
     if (!response.ok) {
         throw new Error(`${modelName} API Error: ${response.status} ${response.statusText}`);
@@ -57,11 +63,9 @@ async function callAIInternal(endpoint: string, messages: any[], modelName: stri
         throw new Error(data.message || 'Unknown AI error');
     }
 
-    console.log('[AI-CLIENT] >>> RAW RESPONSE >>>');
-    console.log(data.content);
-    console.log('[AI-CLIENT] <<< END RAW RESPONSE <<<');
+    const contentLength = typeof data.content === 'string' ? data.content.length : 0;
+    console.log(`[AI-CLIENT] ${modelName} OK — response ${contentLength} chars`);
 
-    // DeepSeek-specific: log reasoning preview
     if (data.reasoning_content && modelName === 'DeepSeek-R1') {
         console.log('[AI-CLIENT] [REASONING] Available (length:', data.reasoning_content.length, 'chars)');
     }

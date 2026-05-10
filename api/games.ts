@@ -14,9 +14,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'POST') {
             const { id, title, description, code } = req.body;
 
-            // Basic validation
-            if (!title || !code) {
-                return res.status(400).json({ error: 'Missing fields' });
+            if (!title || typeof title !== 'string' || title.trim().length === 0) {
+                return res.status(400).json({ error: 'title is required and must be a non-empty string' });
+            }
+            if (title.length > 200) {
+                return res.status(400).json({ error: 'title must be 200 characters or fewer' });
+            }
+            if (!code || typeof code !== 'string' || code.trim().length === 0) {
+                return res.status(400).json({ error: 'code is required and must be a non-empty string' });
+            }
+            if (code.length > 500_000) {
+                return res.status(400).json({ error: 'code exceeds maximum allowed size' });
+            }
+            if (description !== undefined && typeof description !== 'string') {
+                return res.status(400).json({ error: 'description must be a string' });
             }
 
             // Check if game already exists (if ID provided)
