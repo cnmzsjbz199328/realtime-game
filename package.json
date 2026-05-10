@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "generate-injection": "node scripts/generate-injection-source.mjs",
+    "prebuild": "node scripts/generate-injection-source.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "postinstall": "prisma generate"

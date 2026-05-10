@@ -1,5 +1,3 @@
-// ⚠️ [SYNC REQUIRED] If you modify this file, you MUST also update the string in:
-// core/runtime/std/InjectionSource.ts
 export class RetroAudio {
     ctx: AudioContext;
     master: GainNode;
