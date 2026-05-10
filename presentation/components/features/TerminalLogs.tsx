@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+type LogEntry = string | { agent: string; message: string };
+
 interface TerminalLogsProps {
-    logs: string[];
+    logs: LogEntry[];
     isVisible: boolean;
 }
 
 // Helper to parse potential JSON logs
-const parseLog = (logItem: string | any) => {
+const parseLog = (logItem: LogEntry) => {
     let content = logItem;
     let agent = 'SYSTEM';
     let isError = false;

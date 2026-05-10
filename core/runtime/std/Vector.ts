@@ -254,8 +254,9 @@ export class Vector {
     }
 
     static angleBetween(v1: { x: number, y: number }, v2: { x: number, y: number }): number {
-        const dot = Vector.dot(v1, v2);
-        const val = Math.max(-1, Math.min(1, dot / (Vector.mag(v1) * Vector.mag(v2))));
+        const m = Vector.mag(v1) * Vector.mag(v2);
+        if (m === 0) return 0;
+        const val = Math.max(-1, Math.min(1, Vector.dot(v1, v2) / m));
         return Math.acos(val);
     }
 }

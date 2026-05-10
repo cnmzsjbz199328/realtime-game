@@ -34,6 +34,8 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
     }, [status, game]);
 
     const INJECTION_HEADER = '// Environment provides: Vector, COLORS\n';
+    const stripHeader = (code: string) =>
+        code.startsWith(INJECTION_HEADER) ? code.substring(INJECTION_HEADER.length) : code;
 
     useEffect(() => {
         if (game?.code) {
@@ -54,10 +56,7 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
     };
 
     const performSave = (gameToSave: GameDefinition) => {
-        // Strip header before saving
-        const cleanCode = editedCode.startsWith(INJECTION_HEADER)
-            ? editedCode.substring(INJECTION_HEADER.length)
-            : editedCode;
+        const cleanCode = stripHeader(editedCode);
 
         onSave({ ...gameToSave, code: cleanCode });
         setSaved(true);
@@ -66,18 +65,14 @@ export const GameStage: React.FC<GameStageProps> = ({ status, game, onCrash, onS
     };
 
     const handleApplyCode = () => {
-        const cleanCode = editedCode.startsWith(INJECTION_HEADER)
-            ? editedCode.substring(INJECTION_HEADER.length)
-            : editedCode;
+        const cleanCode = stripHeader(editedCode);
 
         if (onUpdateCode && cleanCode !== game?.code) {
             onUpdateCode(cleanCode);
         }
     };
 
-    const cleanEditedCode = editedCode.startsWith(INJECTION_HEADER)
-        ? editedCode.substring(INJECTION_HEADER.length)
-        : editedCode;
+    const cleanEditedCode = stripHeader(editedCode);
 
     const codeToDisplay = viewMode === 'full' && game
         ? getStandaloneHTML(game.title, editedCode)
