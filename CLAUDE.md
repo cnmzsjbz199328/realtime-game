@@ -129,14 +129,6 @@ System prompts (`SystemPrompt` table) and skeleton templates (`Skeleton` table) 
 - When a component has more than five `useState` calls, consolidate with `useReducer`.
 - Repeated string-processing logic (e.g. header stripping in `GameStage.tsx`) must be extracted into a named function or a dedicated util, not copied across multiple callbacks.
 
-## Known Technical Debt
-
-The following issues are known but not yet fixed. Take care when touching these areas.
-
-| Location | Issue | Risk |
-|----------|-------|------|
-| `prisma/schema.prisma` | Cross-table references (`IssueRecord.gameId`, `OptimizationRecord.gameId`) lack Prisma foreign-key relations | Low — data integrity not enforced at DB level |
-
 ---
 
 ## Environment Variables
