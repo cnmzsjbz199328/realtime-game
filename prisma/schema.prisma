@@ -15,6 +15,9 @@ model SavedGame {
   likes       Int      @default(0)
   createdAt   DateTime @default(now())
 
+  issues        IssueRecord[]
+  optimizations OptimizationRecord[]
+
   @@index([likes(sort: Desc)])
   @@index([createdAt])
 }
@@ -49,8 +52,9 @@ model Skeleton {
 }
 
 model IssueRecord {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   gameId      String
+  game        SavedGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
   errorType   String   // 'SYNTAX', 'RUNTIME', 'LOGIC'
   errorMsg    String   @db.Text
   fixPrompt   String?  @db.Text
@@ -63,8 +67,9 @@ model IssueRecord {
 }
 
 model OptimizationRecord {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   gameId      String
+  game        SavedGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
   userRequest String   @db.Text
   diff        String?  @db.Text
   skeletonId  String?
