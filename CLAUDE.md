@@ -99,7 +99,7 @@ System prompts (`SystemPrompt` table) and skeleton templates (`Skeleton` table) 
 - Explicitly type all function parameters, return values, and variables in new code. Do not use `any`.
 - API endpoints (`api/`) must validate `req.body` before use — check types and lengths. Use `zod` or a hand-written guard.
 - Port interfaces live in `core/domain/types.ts`. New services must implement the corresponding interface; do not couple directly to a concrete class from another layer.
-- `tsconfig.json` does not yet enable `strict: true`. Write new code as if it does: treat all values as potentially null/undefined unless proven otherwise.
+- `tsconfig.json` has `strict: true` enabled. All new code must satisfy strict null checks and no-implicit-any.
 
 ### Error Handling
 
