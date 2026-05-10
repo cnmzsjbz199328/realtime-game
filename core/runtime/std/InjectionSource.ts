@@ -218,8 +218,9 @@ class Vector {
     return v1.x * v2.y - v1.y * v2.x;
   }
   static angleBetween(v1, v2) {
-    const dot = Vector.dot(v1, v2);
-    const val = Math.max(-1, Math.min(1, dot / (Vector.mag(v1) * Vector.mag(v2))));
+    const m = Vector.mag(v1) * Vector.mag(v2);
+    if (m === 0) return 0;
+    const val = Math.max(-1, Math.min(1, Vector.dot(v1, v2) / m));
     return Math.acos(val);
   }
 }
